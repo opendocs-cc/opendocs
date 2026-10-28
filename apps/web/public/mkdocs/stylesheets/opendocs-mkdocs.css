@@ -1,0 +1,572 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+/* `.od-mkdocs` used to wrap the whole page (mkdocs Material chrome). It now
+   only wraps the article body + search dialog, so the rules below target
+   typography + search styling without imposing full-page layout. */
+
+.od-mkdocs {
+  color: #444;
+}
+
+.od-mkdocs .md-typeset > div > :first-child {
+  margin-top: 0;
+}
+
+/* --- Article headings ---
+   MkDocs Material sizes H2 in ems from the bumped article font-size, while
+   Bear sizes H1 in rems. That made mid-document H1s look the same size as,
+   or smaller than, H2s. Keep the first H1 hidden because OpenDocs renders
+   the document title in the page shell, but give visible body H1s their own
+   clear section rhythm. */
+
+.od-mkdocs .md-typeset h1,
+.od-mkdocs .md-typeset h2,
+.od-mkdocs .md-typeset h3,
+.od-mkdocs .md-typeset h4 {
+  color: #444;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.2;
+}
+
+.od-mkdocs .md-typeset h1 {
+  display: block;
+  font-size: 2.05rem;
+  margin: 3.25rem 0 1rem;
+}
+
+.od-mkdocs .md-typeset > div > h1:first-child {
+  display: none;
+}
+
+.od-mkdocs .md-typeset h2 {
+  font-size: 1.5rem;
+  margin: 2.25rem 0 0.75rem;
+}
+
+.od-mkdocs .md-typeset h1 + h2 {
+  margin-top: 1.25rem;
+}
+
+.od-mkdocs .md-typeset h3 {
+  font-size: 1.25rem;
+  margin: 1.9rem 0 0.65rem;
+}
+
+.od-mkdocs .md-typeset h4 {
+  font-size: 1.05rem;
+  margin: 1.5rem 0 0.55rem;
+}
+
+.od-mkdocs .md-typeset p {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.od-mkdocs .md-typeset ol {
+  list-style-type: decimal;
+  padding-left: 1.5em;
+}
+
+.od-mkdocs .md-typeset ol > li {
+  padding-left: 0.5em;
+}
+
+.od-mkdocs .md-typeset ol > li::marker {
+  color: #7F56D9;
+  font-weight: 600;
+}
+
+.od-mkdocs .md-typeset ul {
+  list-style-type: disc;
+  padding-left: 1.5em;
+}
+
+.od-mkdocs .md-typeset ul > li {
+  padding-left: 0.5em;
+}
+
+.od-mkdocs .md-typeset ul > li::marker {
+  color: #7F56D9;
+}
+
+.od-mkdocs .md-typeset ul ul {
+  list-style-type: circle;
+}
+
+.od-mkdocs .md-typeset ul ul > li::marker {
+  color: #7F56D9;
+}
+
+/* --- Checkboxes (task lists) --- */
+
+.od-mkdocs .md-typeset input[type="checkbox"] {
+  accent-color: #7F56D9;
+}
+
+/* --- Code blocks (rehype-pretty-code / Shiki) --- */
+
+.od-mkdocs .md-typeset figure[data-rehype-pretty-code-figure] {
+  margin: 1.5em 0;
+  text-align: left;
+  width: 100%;
+}
+
+.od-mkdocs .md-typeset figure[data-rehype-pretty-code-figure] pre {
+  border: 1px solid #E4E5E6;
+  border-radius: 10px;
+  padding: 1em 1.2em;
+  overflow-x: auto;
+  font-size: 0.875em;
+  line-height: 1.7;
+}
+
+.od-mkdocs .md-typeset figure[data-rehype-pretty-code-figure] code {
+  display: grid;
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+.od-mkdocs .md-typeset figure[data-rehype-pretty-code-figure] [data-line] {
+  padding: 0 0.5em;
+  border-left: 2px solid transparent;
+}
+
+.od-mkdocs .md-typeset figure[data-rehype-pretty-code-figure] [data-highlighted-line] {
+  background: rgba(127, 86, 217, 0.08);
+  border-left-color: #7F56D9;
+}
+
+.od-mkdocs .md-typeset figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
+  background: rgba(127, 86, 217, 0.15);
+  border-radius: 3px;
+  padding: 1px 4px;
+}
+
+.od-mkdocs .md-typeset figure[data-rehype-pretty-code-figure] figcaption {
+  font-size: 0.8em;
+  color: #888888;
+  padding: 0.5em 1.2em;
+  border: 1px solid #E4E5E6;
+  border-bottom: none;
+  border-radius: 10px 10px 0 0;
+  background: #F9F9F9;
+}
+
+.od-mkdocs .md-typeset figure[data-rehype-pretty-code-figure] figcaption + pre {
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+/* Inline code */
+.od-mkdocs .md-typeset code:not(pre code) {
+  background: #f3f5f7;
+  border-radius: 5px;
+  padding: 0.15em 0.4em;
+  font-size: 0.875em;
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+}
+
+.od-mkdocs .od-mkdocs__nav {
+  align-items: center;
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  max-width: none;
+  min-height: 2.4rem;
+  padding: 0 15px;
+}
+
+.od-mkdocs .od-mkdocs__brand {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.55rem;
+  line-height: 1;
+  min-width: 0;
+}
+
+.od-mkdocs .od-mkdocs__brand-link {
+  align-items: center;
+  color: #444;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 700;
+  height: 1rem;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.od-mkdocs .od-mkdocs__header-title {
+  align-items: center;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.od-mkdocs .od-mkdocs__header-title .md-header__ellipsis {
+  align-items: center;
+  display: flex;
+  min-height: 1rem;
+  width: 100%;
+}
+
+.od-mkdocs .od-mkdocs__header-title-shell {
+  display: block;
+  height: 1rem;
+  max-width: min(42rem, calc(100vw - 24rem));
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+}
+
+.od-mkdocs .od-mkdocs__header-title-shell .md-header__topic {
+  align-items: center;
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  opacity: 1;
+  position: absolute;
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease;
+}
+
+.od-mkdocs .od-mkdocs__header-title-shell .md-header__topic {
+  transform: translateY(0.55rem);
+}
+
+.od-mkdocs[data-header-scrolled="false"] .od-mkdocs__header-title-shell .md-header__topic {
+  opacity: 0;
+  transform: translateY(0.55rem);
+}
+
+.od-mkdocs[data-header-scrolled="true"] .od-mkdocs__header-title-shell .md-header__topic {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.od-mkdocs .od-mkdocs__header-title-shell .md-ellipsis {
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.od-mkdocs .md-typeset .headerlink,
+.od-mkdocs .md-typeset a[title="Permanent link"] {
+  opacity: 0;
+  margin-left: 0.35rem;
+  color: #b7b7b7;
+  text-decoration: none;
+  transition:
+    opacity 125ms ease,
+    color 125ms ease;
+}
+
+.od-mkdocs .md-typeset h1:hover .headerlink,
+.od-mkdocs .md-typeset h2:hover .headerlink,
+.od-mkdocs .md-typeset h3:hover .headerlink,
+.od-mkdocs .md-typeset h4:hover .headerlink,
+.od-mkdocs .md-typeset h5:hover .headerlink,
+.od-mkdocs .md-typeset h6:hover .headerlink,
+.od-mkdocs .md-typeset h1:hover a[title="Permanent link"],
+.od-mkdocs .md-typeset h2:hover a[title="Permanent link"],
+.od-mkdocs .md-typeset h3:hover a[title="Permanent link"],
+.od-mkdocs .md-typeset h4:hover a[title="Permanent link"],
+.od-mkdocs .md-typeset h5:hover a[title="Permanent link"],
+.od-mkdocs .md-typeset h6:hover a[title="Permanent link"],
+.od-mkdocs .md-typeset .headerlink:focus,
+.od-mkdocs .md-typeset .headerlink:hover,
+.od-mkdocs .md-typeset a[title="Permanent link"]:focus,
+.od-mkdocs .md-typeset a[title="Permanent link"]:hover {
+  opacity: 1;
+}
+
+.od-mkdocs .md-typeset .headerlink:focus,
+.od-mkdocs .md-typeset .headerlink:hover,
+.od-mkdocs .md-typeset a[title="Permanent link"]:focus,
+.od-mkdocs .md-typeset a[title="Permanent link"]:hover {
+  color: #7F56D9;
+}
+
+.od-mkdocs .md-typeset h1[id],
+.od-mkdocs .md-typeset h2[id],
+.od-mkdocs .md-typeset h3[id],
+.od-mkdocs .md-typeset h4[id],
+.od-mkdocs .md-typeset h5[id],
+.od-mkdocs .md-typeset h6[id],
+.od-mkdocs .md-typeset :target {
+  /* Clear the 4rem sticky header plus breathing room when jumping to a
+     heading from the ¶ link, the contents list or a search result. */
+  scroll-margin-top: 5.5rem;
+}
+
+/* The mkdocs-Material search dialog used to live here — a ~250-line
+   block of `.od-mkdocs__search-*` / `.md-search__*` overrides. It was
+   removed when the article page moved to the shared `<WorkspaceSearch>`
+   component (a lightweight ⌘K palette). The rules above (`.md-typeset`
+   headings, `.od-mkdocs__tags`, etc.) still ride on the mkdocs Material
+   base stylesheet and stay. */
+
+.od-mkdocs .od-mkdocs__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 2rem;
+}
+
+.od-mkdocs .od-mkdocs__tag {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  font-size: 0.75rem;
+  color: #666;
+  background: #f4f4f5;
+  border-radius: 4px;
+}
+
+.od-mkdocs .od-mkdocs__updated {
+  color: #888;
+  font-size: 0.8rem;
+  margin-top: 1rem;
+}
+
+/* --- Profile header --- */
+.od-mkdocs .od-profile-header {
+  align-items: flex-start;
+  display: flex;
+  gap: 1.3rem;
+  margin-bottom: 1.8rem;
+  padding-bottom: 1.8rem;
+  border-bottom: 1px solid var(--bear-stroke, #e4e5e6);
+}
+
+.od-mkdocs .od-profile-header__avatar {
+  border-radius: 50%;
+  flex: none;
+  height: 5rem;
+  object-fit: cover;
+  width: 5rem;
+}
+
+.od-mkdocs .od-profile-header__info {
+  min-width: 0;
+}
+
+.od-mkdocs .od-profile-header__name {
+  color: var(--bear-text, #444);
+  font-size: 1.4rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+  margin: 0 0 0.15rem;
+}
+
+.od-mkdocs .od-profile-header__handle {
+  color: var(--bear-text-secondary, #888);
+  font-size: 0.82rem;
+  margin: 0;
+}
+
+.od-mkdocs .od-profile-header__bio {
+  color: var(--bear-text-secondary, #888);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  margin: 0.55rem 0 0;
+}
+
+/* --- Profile post list --- */
+.od-mkdocs .md-post__action a {
+  color: var(--bear-accent, #7F56D9);
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: none;
+}
+
+.od-mkdocs .md-post__action a:hover {
+  text-decoration: underline;
+}
+
+.od-mkdocs .md-typeset ul.md-meta__list {
+  display: flex;
+  gap: 0.15rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+[dir=ltr] .od-mkdocs .md-typeset ul.md-meta__list {
+  margin-left: 0;
+}
+
+.od-mkdocs .md-typeset ul.md-meta__list li.md-meta__item {
+  color: var(--bear-text-secondary, #888);
+  font-size: 0.8rem;
+  margin-left: 0;
+  margin-bottom: 0;
+}
+
+.od-mkdocs .md-typeset ul.md-meta__list li.md-meta__item + li.md-meta__item::before {
+  content: "\00B7";
+  margin-right: 0.15rem;
+}
+
+.od-mkdocs .od-profile-post-link {
+  color: var(--bear-text, #444) !important;
+  text-decoration: none !important;
+}
+
+.od-mkdocs .od-profile-post-link:hover {
+  color: var(--bear-accent, #7F56D9) !important;
+}
+
+.od-mkdocs .od-profile-empty {
+  color: var(--bear-text-secondary, #888);
+  padding: 2rem 0;
+}
+
+.od-mkdocs .od-profile-empty p {
+  margin: 0 0 0.35rem;
+}
+
+@media screen and (max-width: 59.984375em) {
+  .od-mkdocs .od-mkdocs__nav {
+    grid-template-columns: auto 1fr;
+  }
+
+  .od-mkdocs .od-mkdocs__header-title {
+    display: none;
+  }
+
+  .od-mkdocs .od-profile-header__avatar {
+    height: 3.5rem;
+    width: 3.5rem;
+  }
+
+  .od-mkdocs .od-profile-header__name {
+    font-size: 1.15rem;
+  }
+}
+
+/* --- Dark mode -----------------------------------------------------------
+   The article renderer is mostly plain CSS (mkdocs Material + custom
+   overrides), so it needs selector-based dark rules rather than Tailwind
+   utility classes. Keep these colors aligned with `app/globals.css`.
+*/
+
+.dark .od-mkdocs {
+  color: #d4d4d8;
+}
+
+.dark .od-mkdocs .md-typeset {
+  color: #d4d4d8;
+}
+
+.dark .od-mkdocs .md-typeset h1,
+.dark .od-mkdocs .md-typeset h2,
+.dark .od-mkdocs .md-typeset h3,
+.dark .od-mkdocs .md-typeset h4,
+.dark .od-mkdocs .md-typeset h5,
+.dark .od-mkdocs .md-typeset h6 {
+  color: #f4f4f5;
+}
+
+.dark .od-mkdocs .md-typeset strong {
+  color: #f4f4f5;
+}
+
+.dark .od-mkdocs .md-typeset a {
+  color: #c4b5fd;
+}
+
+.dark .od-mkdocs .md-typeset a:hover {
+  color: #ddd6fe;
+}
+
+.dark .od-mkdocs .md-typeset hr {
+  border-color: #27272a;
+}
+
+.dark .od-mkdocs .md-typeset blockquote {
+  color: #a1a1aa;
+  border-left-color: #8b5cf6;
+}
+
+.dark .od-mkdocs .md-typeset table:not([class]) {
+  background: transparent;
+}
+
+.dark .od-mkdocs .md-typeset table:not([class]) th,
+.dark .od-mkdocs .md-typeset table:not([class]) td {
+  border-color: #27272a;
+}
+
+.dark .od-mkdocs .md-typeset table:not([class]) th {
+  color: #f4f4f5;
+  background: #111113;
+}
+
+.dark .od-mkdocs .md-typeset code:not(pre code) {
+  color: #ddd6fe;
+  background: #18181b;
+  border: 1px solid #27272a;
+}
+
+.dark .od-mkdocs .md-typeset figure[data-rehype-pretty-code-figure] pre {
+  color: #e4e4e7;
+  background: #0f0f12 !important;
+  border-color: #27272a;
+}
+
+.dark .od-mkdocs .md-typeset figure[data-rehype-pretty-code-figure] figcaption {
+  color: #a1a1aa;
+  background: #18181b;
+  border-color: #27272a;
+}
+
+.dark .od-mkdocs .md-typeset figure[data-rehype-pretty-code-figure] [data-highlighted-line] {
+  background: rgba(167, 139, 250, 0.14);
+  border-left-color: #a78bfa;
+}
+
+.dark .od-mkdocs .md-typeset figure[data-rehype-pretty-code-figure] [data-highlighted-chars] {
+  background: rgba(167, 139, 250, 0.22);
+}
+
+.dark .od-mkdocs .md-typeset .headerlink,
+.dark .od-mkdocs .md-typeset a[title="Permanent link"] {
+  color: #71717a;
+}
+
+.dark .od-mkdocs .md-typeset .headerlink:focus,
+.dark .od-mkdocs .md-typeset .headerlink:hover,
+.dark .od-mkdocs .md-typeset a[title="Permanent link"]:focus,
+.dark .od-mkdocs .md-typeset a[title="Permanent link"]:hover {
+  color: #c4b5fd;
+}
+
+.dark .od-mkdocs .od-mkdocs__brand-link,
+.dark .od-mkdocs .od-profile-post-link {
+  color: #e4e4e7 !important;
+}
+
+.dark .od-mkdocs .od-mkdocs__tag {
+  color: #d4d4d8;
+  background: #18181b;
+}
+
+.dark .od-mkdocs .od-mkdocs__updated,
+.dark .od-mkdocs .od-profile-header__handle,
+.dark .od-mkdocs .od-profile-header__bio,
+.dark .od-mkdocs .md-typeset ul.md-meta__list li.md-meta__item,
+.dark .od-mkdocs .od-profile-empty {
+  color: #a1a1aa;
+}
+
+.dark .od-mkdocs .od-profile-header {
+  border-bottom-color: #27272a;
+}
+
+.dark .od-mkdocs .od-profile-header__name {
+  color: #f4f4f5;
+}

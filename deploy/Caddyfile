@@ -1,0 +1,61 @@
+# Global options. Custom domains (notes.example.com) get certificates on
+# demand, the first time someone visits them. Before Caddy requests one it
+# asks the API, which answers 200 only for verified custom domains on Pro
+# and Team workspaces: that check is what stops anyone from pointing a
+# domain at us and making us request certificates. api:4001 is the API's
+# internal server, reachable only on the Compose network. (The old
+# on_demand_tls interval and burst options were removed from Caddy; the ask
+# endpoint is the only control.)
+{
+	on_demand_tls {
+		ask http://api:4001/internal/tls-ask
+	}
+}
+
+# Hostnames come from OPENDOCS_DOMAIN (opendocs.cc when unset): the web app
+# on the domain itself, the API on api., the MCP server on mcp. and the docs
+# on docs. The docs site is optional: OPENDOCS_DOCS_SITE=on serves it,
+# anything else leaves it out (self-hosted instances link to
+# docs.opendocs.cc instead).
+
+(docs-site-on) {
+	docs.{$OPENDOCS_DOMAIN:opendocs.cc} {
+		reverse_proxy docs:3000
+	}
+}
+
+(docs-site-off) {
+}
+
+www.{$OPENDOCS_DOMAIN:opendocs.cc} {
+	redir https://{$OPENDOCS_DOMAIN:opendocs.cc}{uri} permanent
+}
+
+{$OPENDOCS_DOMAIN:opendocs.cc} {
+	reverse_proxy web:3000
+}
+
+api.{$OPENDOCS_DOMAIN:opendocs.cc} {
+	reverse_proxy api:4000
+}
+
+import docs-site-{$OPENDOCS_DOCS_SITE:off}
+
+# MCP server for AI apps (apps/mcp). Streamed responses (SSE) must not be
+# buffered.
+mcp.{$OPENDOCS_DOMAIN:opendocs.cc} {
+	reverse_proxy mcp:4100 {
+		flush_interval -1
+	}
+}
+
+# Every other hostname: workspaces' custom domains. The named sites above
+# take precedence. The web app maps the host to its workspace, and shows
+# "This domain isn't connected" for a host it doesn't know (one removed
+# after its certificate was issued, for example).
+https:// {
+	tls {
+		on_demand
+	}
+	reverse_proxy web:3000
+}

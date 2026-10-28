@@ -1,0 +1,316 @@
+/* ===== Bear-inspired theme ===== */
+
+/* --- Fonts --- */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+
+:root {
+  --bear-bg: #ffffff;
+  --bear-bg-secondary: #f3f5f7;
+  --bear-text: #444444;
+  --bear-text-secondary: #888888;
+  --bear-text-tertiary: #d9d9d9;
+  --bear-accent: #7f56d9;
+  --bear-stroke: #e4e5e6;
+  --bear-content-width: 42rem;
+}
+
+/* --- Base overrides --- */
+:root,
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color: var(--bear-bg);
+  --md-primary-bg-color: var(--bear-text);
+  --md-accent-fg-color: var(--bear-accent);
+  --md-default-fg-color: var(--bear-text);
+  --md-default-fg-color--light: var(--bear-text-secondary);
+  --md-default-bg-color: var(--bear-bg);
+  --md-typeset-color: var(--bear-text);
+  --md-typeset-a-color: var(--bear-accent);
+}
+
+/* --- Typography ---
+ *
+ * `body` and `.md-typeset` used to share a single rule at 0.95rem.
+ * They're split now so article body copy can read a bit larger without
+ * dragging the rest of the page (including the Next.js navbar) with it.
+ * The navbar uses Tailwind `text-sm` classes which beat `body` on
+ * specificity anyway, but leaving `body` without an explicit font-size
+ * means Tailwind Preflight's default 16px applies everywhere else on
+ * the page — matching the workspace profile page exactly.
+ */
+body {
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Helvetica,
+    Arial,
+    sans-serif;
+  line-height: 1.7;
+  color: var(--bear-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.md-typeset {
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Helvetica,
+    Arial,
+    sans-serif;
+  /* 19px at 16px root (~25% above the old 0.95rem/15.2px). Sized for
+   * comfortable long-form reading. Table cells inherit from here since
+   * mkdocs Material sets no explicit font-size on td/th (only em-based
+   * padding), so tables scale with the body automatically. Headings
+   * stay at their rem-based sizes (1.8rem/2rem further down this file)
+   * which keeps the hierarchy proportional. */
+  font-size: 1.1875rem;
+  line-height: 1.7;
+  color: var(--bear-text);
+  -webkit-font-smoothing: antialiased;
+}
+
+.md-typeset h1,
+.md-typeset h2,
+.md-typeset h3,
+.md-typeset h4 {
+  font-weight: 700;
+  color: var(--bear-text);
+  letter-spacing: -0.01em;
+}
+
+.md-typeset h1 {
+  font-size: 1.8rem;
+  margin-bottom: 0.4rem;
+}
+
+/* --- Tables ---
+ *
+ * mkdocs Material's `main.min.css` hardcodes plain-markdown tables to
+ * `font-size: .64rem` (~10px), which leaves them nearly unreadable
+ * next to the bumped body copy. Reset them to match the parent
+ * `.md-typeset` font-size (19px) and give cells a slightly tighter
+ * line-height so rows don't feel over-spaced at that size. Selector
+ * matches mkdocs' own `:not([class])` scoping so admonition / code
+ * tables with their own classes are untouched.
+ */
+.md-typeset table:not([class]) {
+  font-size: 0.7em;
+}
+
+.md-typeset table:not([class]) th,
+.md-typeset table:not([class]) td {
+  line-height: 1.4;
+}
+
+/* --- Header: minimal white bar --- */
+.md-header {
+  background-color: var(--bear-bg);
+  color: var(--bear-text);
+  box-shadow: none;
+  border-bottom: 1px solid var(--bear-stroke);
+}
+
+.md-header[data-md-state="shadow"] {
+  box-shadow: none;
+  border-bottom: 1px solid var(--bear-stroke);
+}
+
+.md-header__topic {
+  font-weight: 600;
+  color: var(--bear-text);
+}
+
+.md-header__title {
+  color: var(--bear-text);
+}
+
+.md-header .md-icon,
+.md-header .md-search__icon {
+  color: var(--bear-text-secondary);
+}
+
+/* --- Hide unnecessary chrome --- */
+.md-tabs,
+.md-footer,
+.md-sidebar--secondary {
+  display: none;
+}
+
+/* Keep primary sidebar hidden on blog index, show on posts for TOC if needed */
+.md-sidebar--primary {
+  display: none;
+}
+
+/* --- Content area: centered, constrained --- */
+.md-content {
+  max-width: var(--bear-content-width);
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.md-main__inner {
+  margin: 0;
+}
+
+.md-content__inner {
+  margin: 0;
+  padding: 0;
+}
+
+/* --- Blog post list (index page) --- */
+.md-post {
+  border-bottom: 1px solid var(--bear-stroke);
+  padding: 1.5rem 0;
+  margin: 0;
+}
+
+.md-post:last-child {
+  border-bottom: none;
+}
+
+.md-post .md-post__header {
+  margin-bottom: 0.3rem;
+}
+
+/* Post titles in listing */
+.md-post .md-typeset h2 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0 0 0.25rem 0;
+  line-height: 1.4;
+}
+
+.md-post .md-typeset h2 a {
+  color: var(--bear-text);
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+
+.md-post .md-typeset h2 a:hover {
+  color: var(--bear-accent);
+}
+
+/* Post metadata (date, reading time) */
+.md-post__meta,
+.md-post .md-typeset .md-post__meta {
+  color: var(--bear-text-secondary);
+  font-size: 0.8rem;
+}
+
+/* Post excerpt text */
+.md-post .md-typeset p {
+  color: var(--bear-text-secondary);
+  font-size: 0.88rem;
+  line-height: 1.6;
+}
+
+/* "Continue reading" link */
+.md-post .md-typeset a.md-content__button {
+  color: var(--bear-accent);
+  font-size: 0.82rem;
+  font-weight: 500;
+  text-decoration: none;
+  border: none;
+}
+
+.md-post .md-typeset a.md-content__button:hover {
+  text-decoration: underline;
+}
+
+/* --- Blog post page (individual article) --- */
+.md-typeset article h1 {
+  font-size: 2rem;
+  line-height: 1.3;
+  margin-bottom: 0.3rem;
+}
+
+.md-typeset article p {
+  margin-bottom: 1.2rem;
+}
+
+/* --- Post author chips: simplify --- */
+.md-post .md-typeset .md-author {
+  border-radius: 50%;
+}
+
+/* --- Links --- */
+.md-typeset a {
+  color: var(--bear-accent);
+  text-decoration: none;
+}
+
+.md-typeset a:hover {
+  text-decoration: underline;
+}
+
+/* --- Code blocks --- */
+.md-typeset code {
+  background: var(--bear-bg-secondary);
+  color: var(--bear-text);
+  border-radius: 4px;
+  font-size: 0.85em;
+  padding: 0.15em 0.4em;
+}
+
+.md-typeset pre {
+  background: var(--bear-bg-secondary);
+  border-radius: 6px;
+  border: 1px solid var(--bear-stroke);
+}
+
+.md-typeset pre code {
+  background: none;
+  padding: 0;
+}
+
+/* --- Search bar --- */
+.md-search__input {
+  background-color: var(--bear-bg-secondary);
+  border-radius: 6px;
+  font-family: "Inter", sans-serif;
+}
+
+/* --- Pagination --- */
+.md-typeset .md-pagination a {
+  color: var(--bear-text-secondary);
+}
+
+.md-typeset .md-pagination .md-pagination__current {
+  color: var(--bear-accent);
+}
+
+/* --- Scrollbar subtle --- */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--bear-text-tertiary);
+  border-radius: 3px;
+}
+
+/* --- Remove material shadows and elevation --- */
+.md-typeset .md-button,
+.md-typeset .admonition,
+.md-typeset details {
+  box-shadow: none;
+}
+
+/* --- Blog index heading --- */
+.md-typeset h1:first-child {
+  display: none;
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+  .md-content {
+    padding: 1.5rem 1rem;
+  }
+
+  .md-typeset article h1 {
+    font-size: 1.6rem;
+  }
+}

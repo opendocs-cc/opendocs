@@ -1,0 +1,25 @@
+{
+  "name": "@opendocs/docs",
+  "version": "0.1.0",
+  "private": true,
+  "license": "MIT",
+  "scripts": {
+    "dev": "docusaurus start --port 3001 --host 0.0.0.0 --no-open",
+    "start": "docusaurus start --port 3001 --host 0.0.0.0 --no-open",
+    "build": "docusaurus build",
+    "serve": "docusaurus serve --port 3001 --no-open",
+    "clear": "docusaurus clear",
+    "postbuild": "node scripts/generate-llms.mjs"
+  },
+  "dependencies": {
+    "@docusaurus/core": "^3.10.0",
+    "@docusaurus/preset-classic": "^3.10.0",
+    "@fontsource-variable/geist": "^5.3.0",
+    "@fontsource-variable/geist-mono": "^5.3.0",
+    "@mdx-js/react": "^3.1.1",
+    "clsx": "^2.1.1",
+    "prism-react-renderer": "^2.4.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  }
+}

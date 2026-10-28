@@ -1,0 +1,4746 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "OpenDocs API",
+    "version": "1.0.0",
+    "description": "Publish Markdown to shareable links and export PDF/DOCX. Agents: read https://opendocs.cc/skill.md first. Send `X-OpenDocs-Client: <agent>` on every request. Errors are `{error, message, docs_url}`. Machine-readable reference for the public OpenDocs API surface used by agents, scripts, the OpenDocs CLI, and dashboard integrations."
+  },
+  "servers": [
+    {
+      "url": "https://api.opendocs.cc",
+      "description": "Production API"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Health"
+    },
+    {
+      "name": "Auth"
+    },
+    {
+      "name": "Publish"
+    },
+    {
+      "name": "Posts"
+    },
+    {
+      "name": "Exports"
+    },
+    {
+      "name": "Workspaces"
+    },
+    {
+      "name": "Team"
+    },
+    {
+      "name": "API keys"
+    },
+    {
+      "name": "Account"
+    }
+  ],
+  "paths": {
+    "/healthz": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "API health check",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "API is healthy.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "status": {
+                      "type": "string",
+                      "const": "ok"
+                    }
+                  },
+                  "required": [
+                    "status"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/healthz/converter": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Document converter health check",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Converter is reachable."
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamError"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/me": {
+      "get": {
+        "tags": [
+          "Auth"
+        ],
+        "summary": "Inspect the authenticated user, onboarding state, active workspace, and document quota",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Authenticated user state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/publish": {
+      "post": {
+        "tags": [
+          "Publish"
+        ],
+        "summary": "Publish one Markdown document",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PublishRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Document published.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/DocumentLimit"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/api/v1/publish/batch": {
+      "post": {
+        "tags": [
+          "Publish"
+        ],
+        "summary": "Publish up to 25 Markdown documents",
+        "description": "Accepts JSON by default. Send Accept: text/event-stream to receive per-document progress events.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchPublishRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "207": {
+            "description": "Per-document publish results.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BatchPublishResponse"
+                }
+              },
+              "text/event-stream": {
+                "schema": {
+                  "type": "string",
+                  "description": "Server-Sent Events: one `result` frame per document (the same object as a JSON result, with url and publicUrl on success) and a final `summary` frame."
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/DocumentLimit"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/api/v1/posts": {
+      "get": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "List posts authored by the authenticated user",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20
+            }
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated posts.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PostListResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{postId}": {
+      "get": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Get post metadata",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PostIdPath"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post metadata.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "post": {
+                      "$ref": "#/components/schemas/Post"
+                    }
+                  },
+                  "required": [
+                    "post"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Hard-delete a post",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PostIdPath"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post deleted.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "postId": {
+                      "type": "string"
+                    },
+                    "deleted": {
+                      "type": "boolean",
+                      "const": true
+                    },
+                    "slug": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "postId",
+                    "deleted",
+                    "slug"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{postId}/raw": {
+      "get": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Pull the current raw Markdown for a post",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PostIdPath"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Raw Markdown and version metadata.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RawPostResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{postId}/update": {
+      "post": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Create a new version of an existing post",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PostIdPath"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceIdQuery"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Post updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdatePostResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        },
+        "description": "Returns `unchanged: true` without a new version when the Markdown is identical. With `baseVersionNumber`, a stale copy gets `409 version_conflict`."
+      }
+    },
+    "/api/v1/posts/{postId}/unpublish": {
+      "post": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Unpublish a post while keeping its history",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PostIdPath"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Post unpublished.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "postId": {
+                      "type": "string"
+                    },
+                    "unpublished": {
+                      "type": "boolean",
+                      "const": true
+                    }
+                  },
+                  "required": [
+                    "postId",
+                    "unpublished"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{postId}/visibility": {
+      "post": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Change post visibility",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PostIdPath"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceIdQuery"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "visibility": {
+                    "$ref": "#/components/schemas/Visibility"
+                  },
+                  "confirmPublic": {
+                    "type": "boolean",
+                    "description": "Required when setting visibility to public."
+                  }
+                },
+                "required": [
+                  "visibility"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Visibility updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VisibilityResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{postId}/tags": {
+      "patch": {
+        "tags": [
+          "Posts"
+        ],
+        "summary": "Add or remove post tags",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PostIdPath"
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceIdQuery"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "add": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 20
+                  },
+                  "remove": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "maxItems": 20
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tags updated.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "postId": {
+                      "type": "string"
+                    },
+                    "tags": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "postId",
+                    "tags"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{postId}/export/{format}": {
+      "post": {
+        "tags": [
+          "Exports"
+        ],
+        "summary": "Export one owned post as PDF or DOCX",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/PostIdPath"
+          },
+          {
+            "name": "format",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ExportFormat"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/WorkspaceIdQuery"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Binary export.",
+            "headers": {
+              "Content-Disposition": {
+                "schema": {
+                  "type": "string"
+                }
+              },
+              "X-Cache": {
+                "schema": {
+                  "type": "string",
+                  "enum": [
+                    "HIT",
+                    "MISS"
+                  ]
+                }
+              }
+            },
+            "content": {
+              "application/pdf": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              },
+              "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "502": {
+            "$ref": "#/components/responses/UpstreamError"
+          },
+          "504": {
+            "$ref": "#/components/responses/Timeout"
+          }
+        }
+      }
+    },
+    "/api/v1/posts/batch/export": {
+      "post": {
+        "tags": [
+          "Exports"
+        ],
+        "summary": "Export up to 10 owned posts into one ZIP",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchExportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "ZIP file containing exports and manifest.json.",
+            "headers": {
+              "X-Batch-Manifest": {
+                "schema": {
+                  "type": "string",
+                  "description": "Base64-encoded JSON manifest."
+                }
+              }
+            },
+            "content": {
+              "application/zip": {
+                "schema": {
+                  "type": "string",
+                  "format": "binary"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/api/v1/public/posts/{workspaceSlug}/{postSlug}/export/{format}": {
+      "post": {
+        "tags": [
+          "Exports"
+        ],
+        "summary": "Export a post that the current viewer can read on the web",
+        "security": [
+          {},
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "workspaceSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "postSlug",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "format",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/ExportFormat"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Binary export."
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces": {
+      "get": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "List workspaces available to the authenticated user",
+        "responses": {
+          "200": {
+            "description": "Workspace list.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "workspaces": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/WorkspaceMembership"
+                      }
+                    }
+                  },
+                  "required": [
+                    "workspaces"
+                  ]
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Create a workspace",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 2,
+                    "maxLength": 120
+                  },
+                  "slug": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 32
+                  }
+                },
+                "required": [
+                  "name",
+                  "slug"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Workspace created."
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace": {
+      "get": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Get workspace settings",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/WorkspaceIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Workspace settings."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Update workspace name",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/WorkspaceName"
+        },
+        "responses": {
+          "200": {
+            "description": "Workspace updated."
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/workspaces/current": {
+      "get": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Get the current dashboard workspace",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Current workspace."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/check-slug": {
+      "get": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Check workspace slug availability",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "slug",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Availability result.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "available": {
+                      "type": "boolean"
+                    },
+                    "reason": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "available"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/slug": {
+      "post": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Rename a workspace slug",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string",
+                    "minLength": 3,
+                    "maxLength": 32
+                  }
+                },
+                "required": [
+                  "workspaceId",
+                  "slug"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Slug updated or unchanged."
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/public-documents": {
+      "post": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Allow or disable public documents for a workspace",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string"
+                  },
+                  "allowed": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "workspaceId",
+                  "allowed"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Setting updated."
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/bio": {
+      "post": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Update workspace profile bio",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string"
+                  },
+                  "bio": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "workspaceId",
+                  "bio"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Bio updated."
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/brand-color": {
+      "post": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Update export brand color",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/BrandColor"
+        },
+        "responses": {
+          "200": {
+            "description": "Brand color updated."
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/logo": {
+      "post": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Update workspace logo URL",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string"
+                  },
+                  "logoUrl": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "format": "uri"
+                  }
+                },
+                "required": [
+                  "workspaceId",
+                  "logoUrl"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Logo updated."
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/logo/upload": {
+      "post": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Upload a workspace logo",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string"
+                  },
+                  "file": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "workspaceId",
+                  "file"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Logo uploaded."
+          },
+          "413": {
+            "$ref": "#/components/responses/PayloadTooLarge"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/logo-in-exports": {
+      "post": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Show or hide workspace logo in exports",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string"
+                  },
+                  "show": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "workspaceId",
+                  "show"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Setting updated."
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/export-font": {
+      "post": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Update workspace export font",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string"
+                  },
+                  "font": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  }
+                },
+                "required": [
+                  "workspaceId",
+                  "font"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Font updated."
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/export-footer": {
+      "post": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Update workspace export footer",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "$ref": "#/components/requestBodies/ExportFooter"
+        },
+        "responses": {
+          "200": {
+            "description": "Footer updated."
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/domain": {
+      "get": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Get the workspace's custom domain",
+        "description": "Any member. The domain, its status, the DNS records to add and the last check's result. `domain` is null when there is none.",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequiredWorkspaceIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The custom domain, or null.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDomainResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "description": "Not a member of the workspace (not_found).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDomainError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Connect or replace the workspace's custom domain",
+        "description": "Owners and admins, on Pro or Team. Checks the records straight away. The same hostname again keeps its verification token and re-checks; a different one replaces the domain with a new token and ends sign-ins on the old one.",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string"
+                  },
+                  "hostname": {
+                    "type": "string",
+                    "maxLength": 300,
+                    "description": "e.g. notes.example.com. A pasted URL is accepted; only the hostname is kept."
+                  }
+                },
+                "required": [
+                  "workspaceId",
+                  "hostname"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The saved domain.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDomainResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "invalid_hostname (with reason), or invalid_request.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDomainError"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "description": "forbidden (members), or plan_required (Free workspace, with tier).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDomainError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not a member of the workspace (not_found).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDomainError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "domain_taken: another workspace has this domain active.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDomainError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Change custom domain settings",
+        "description": "Owners and admins, on Pro or Team. For now one setting: whether the domain's footer shows \"Published with OpenDocs\" (false for a white-label site).",
+        "operationId": "updateWorkspaceDomainSettings",
+        "tags": [
+          "Workspaces"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "workspaceId",
+                  "showPoweredBy"
+                ],
+                "properties": {
+                  "workspaceId": {
+                    "type": "string"
+                  },
+                  "showPoweredBy": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The saved domain.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDomainResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "description": "forbidden (members), or plan_required (Free workspace, with tier).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDomainError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not a member of the workspace (not_found).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDomainError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Remove the workspace's custom domain",
+        "description": "Owners and admins. Stops serving the domain and ends sign-ins on it.",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequiredWorkspaceIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Removed, or there was nothing to remove (removed: false).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "removed": {
+                      "type": "boolean"
+                    },
+                    "hostname": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "removed",
+                    "hostname"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "description": "forbidden (members).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDomainError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not a member of the workspace (not_found).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDomainError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/domain/check": {
+      "post": {
+        "tags": [
+          "Workspaces"
+        ],
+        "summary": "Check the custom domain's DNS records now",
+        "description": "Owners and admins. 12 checks a minute per account. A failed check on an active domain is reported in lastError but doesn't count toward the three failures that stop it serving; only the background check every 6 hours does.",
+        "security": [
+          {
+            "bearerAuth": []
+          },
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "workspaceId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "The domain after the check, or domain: null when there is none.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDomainResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "description": "forbidden (members).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDomainError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not a member of the workspace (not_found).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomDomainError"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/RateLimited"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/team": {
+      "get": {
+        "tags": [
+          "Team"
+        ],
+        "summary": "List workspace team members",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequiredWorkspaceIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Team members."
+          },
+          "400": {
+            "$ref": "#/components/responses/MissingWorkspace"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/team/stats": {
+      "get": {
+        "tags": [
+          "Team"
+        ],
+        "summary": "Get workspace team counts",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequiredWorkspaceIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Team stats."
+          },
+          "400": {
+            "$ref": "#/components/responses/MissingWorkspace"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/team/invitations": {
+      "get": {
+        "tags": [
+          "Team"
+        ],
+        "summary": "List pending team invitations",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/RequiredWorkspaceIdQuery"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Pending invitations."
+          },
+          "400": {
+            "$ref": "#/components/responses/MissingWorkspace"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/team/invite": {
+      "post": {
+        "tags": [
+          "Team"
+        ],
+        "summary": "Invite a team member",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeamInviteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Invitation created."
+          },
+          "400": {
+            "$ref": "#/components/responses/InvalidRequest"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/team/invitations/{id}/resend": {
+      "post": {
+        "tags": [
+          "Team"
+        ],
+        "summary": "Resend a team invitation",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdPath"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invitation resent."
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/team/invitations/{id}": {
+      "delete": {
+        "tags": [
+          "Team"
+        ],
+        "summary": "Cancel a pending team invitation",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdPath"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invitation canceled."
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/team/members/{id}/role": {
+      "patch": {
+        "tags": [
+          "Team"
+        ],
+        "summary": "Change a team member role",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdPath"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "role": {
+                    "$ref": "#/components/schemas/WorkspaceRole"
+                  }
+                },
+                "required": [
+                  "role"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role changed."
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/team/members/{id}": {
+      "delete": {
+        "tags": [
+          "Team"
+        ],
+        "summary": "Remove a team member",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdPath"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Member removed."
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/team/accept-invite": {
+      "post": {
+        "tags": [
+          "Team"
+        ],
+        "summary": "Accept a team invitation",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "token"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Invitation accepted."
+          },
+          "402": {
+            "$ref": "#/components/responses/BillingFailed"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "410": {
+            "$ref": "#/components/responses/Gone"
+          }
+        }
+      }
+    },
+    "/api/v1/api-keys": {
+      "get": {
+        "tags": [
+          "API keys"
+        ],
+        "summary": "List API keys",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API key list."
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "API keys"
+        ],
+        "summary": "Create an API key",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  }
+                },
+                "required": [
+                  "workspaceId",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "API key created. The plaintext key is returned once."
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          }
+        }
+      }
+    },
+    "/api/v1/api-keys/{keyId}": {
+      "delete": {
+        "tags": [
+          "API keys"
+        ],
+        "summary": "Revoke an API key",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "keyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "API key revoked."
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/api/v1/account/delete-check": {
+      "get": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Check whether account deletion is currently allowed",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Deletion check result."
+          }
+        }
+      }
+    },
+    "/api/v1/account": {
+      "delete": {
+        "tags": [
+          "Account"
+        ],
+        "summary": "Delete the authenticated account",
+        "security": [
+          {
+            "cookieAuth": []
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Account deleted."
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          }
+        }
+      }
+    },
+    "/api/v1/auth/code/request": {
+      "post": {
+        "security": [],
+        "summary": "Email a 6-digit sign-in code (creates the account on verify if new)",
+        "operationId": "requestSignInCode",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "email"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Code sent",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "email": {
+                      "type": "string"
+                    },
+                    "accountExists": {
+                      "type": "boolean"
+                    },
+                    "expiresInSeconds": {
+                      "type": "integer"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/auth/code/verify": {
+      "post": {
+        "security": [],
+        "summary": "Verify the code and get an API key",
+        "operationId": "verifySignInCode",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string"
+                  },
+                  "code": {
+                    "type": "string"
+                  },
+                  "keyName": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "email",
+                  "code"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "apiKey": {
+                      "type": "string"
+                    },
+                    "keyName": {
+                      "type": "string"
+                    },
+                    "accountCreated": {
+                      "type": "boolean"
+                    },
+                    "userId": {
+                      "type": "string"
+                    },
+                    "username": {
+                      "type": "string"
+                    },
+                    "workspace": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "slug": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "defaultProject": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "slug": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/anonymous/publish": {
+      "post": {
+        "security": [],
+        "summary": "Publish without an account (24-hour link)",
+        "operationId": "publishAnonymous",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "markdown": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "markdown"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Published",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnonymousDoc"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/anonymous/{id}": {
+      "put": {
+        "security": [],
+        "summary": "Update an anonymous doc (does not extend expiry)",
+        "operationId": "updateAnonymous",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "markdown": {
+                    "type": "string"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "claimToken": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "markdown",
+                  "claimToken"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnonymousDoc"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/anonymous/{id}/report": {
+      "post": {
+        "security": [],
+        "summary": "Report an anonymous page",
+        "description": "For readers of /a/<id>. Reports from 3 different addresses hide the page until it's reviewed. Limited to 5 an hour and 20 a day per IP.",
+        "operationId": "reportAnonymous",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "reason": {
+                    "type": "string",
+                    "enum": [
+                      "spam",
+                      "phishing",
+                      "malware",
+                      "illegal",
+                      "personal",
+                      "other"
+                    ]
+                  },
+                  "details": {
+                    "type": "string",
+                    "maxLength": 500
+                  }
+                },
+                "required": [
+                  "reason"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Recorded",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "reported": {
+                      "type": "boolean"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/anonymous/claim": {
+      "post": {
+        "summary": "Move an anonymous doc into a workspace",
+        "operationId": "claimAnonymous",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "claimToken": {
+                    "type": "string"
+                  },
+                  "workspaceId": {
+                    "type": "string"
+                  },
+                  "projectId": {
+                    "type": "string"
+                  },
+                  "projectSlug": {
+                    "type": "string"
+                  },
+                  "visibility": {
+                    "$ref": "#/components/schemas/Visibility"
+                  },
+                  "confirmPublic": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "claimToken",
+                  "workspaceId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Claimed",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PublishResult"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/projects": {
+      "get": {
+        "summary": "List projects",
+        "operationId": "listProjects",
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Projects",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a project",
+        "operationId": "createProject",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "workspaceId": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "slug": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "workspaceId",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{postId}/versions": {
+      "get": {
+        "summary": "Version history, newest first",
+        "operationId": "listVersions",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Post UUID or slug"
+          },
+          {
+            "name": "workspaceId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Disambiguates slugs across workspaces"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Versions",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "postId": {
+                      "type": "string"
+                    },
+                    "versions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "versionNumber": {
+                            "type": "integer"
+                          },
+                          "createdAt": {
+                            "type": "string"
+                          },
+                          "createdBy": {
+                            "type": "string"
+                          },
+                          "client": {
+                            "type": "string"
+                          },
+                          "restoredFromVersion": {
+                            "type": "integer"
+                          },
+                          "bytes": {
+                            "type": "integer"
+                          },
+                          "isCurrent": {
+                            "type": "boolean"
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{postId}/versions/{versionNumber}/raw": {
+      "get": {
+        "summary": "Markdown of one version",
+        "operationId": "getVersionMarkdown",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Post UUID or slug"
+          },
+          {
+            "name": "versionNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "workspaceId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Disambiguates slugs across workspaces"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Markdown",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{postId}/versions/{versionNumber}/restore": {
+      "post": {
+        "summary": "Publish an old version again as a new version",
+        "operationId": "restoreVersion",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Post UUID or slug"
+          },
+          {
+            "name": "versionNumber",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "workspaceId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Disambiguates slugs across workspaces"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Restored",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{postId}/move": {
+      "post": {
+        "summary": "Move to another project",
+        "operationId": "movePost",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Post UUID or slug"
+          },
+          {
+            "name": "workspaceId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Disambiguates slugs across workspaces"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "projectId": {
+                    "type": "string"
+                  },
+                  "projectSlug": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Moved, or already in that project (moved: false).",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MoveResponse"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/posts/{postId}/share": {
+      "get": {
+        "summary": "Who the post is shared with",
+        "operationId": "getShares",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Post UUID or slug"
+          },
+          {
+            "name": "workspaceId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Disambiguates slugs across workspaces"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Shares",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Shares"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Share with emails or domains (guests sign in with a verified email)",
+        "operationId": "addShares",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Post UUID or slug"
+          },
+          {
+            "name": "workspaceId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Disambiguates slugs across workspaces"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "emails": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "domains": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "notify": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Shared",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Shares"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "summary": "Stop sharing",
+        "operationId": "removeShares",
+        "parameters": [
+          {
+            "name": "postId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Post UUID or slug"
+          },
+          {
+            "name": "workspaceId",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "description": "Disambiguates slugs across workspaces"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "emails": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  "domains": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Shares"
+                }
+              }
+            }
+          },
+          "default": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/workspace/branding": {
+      "get": {
+        "summary": "Get the workspace export theme",
+        "description": "Brand color, font, logo and footer used in PDF/DOCX exports, plus the available presets, fonts and contrast guidelines. Accepts API keys.",
+        "tags": [
+          "Workspace"
+        ],
+        "parameters": [
+          {
+            "name": "workspaceId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Export theme",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Current export theme plus presets, fonts and guidelines."
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "summary": "Change the workspace export theme",
+        "description": "Apply a preset and/or set brandColor, font, showLogoInExports and footer fields in one write. Owners and admins on any plan; footer fields need Pro or Team (Free exports keep the \"Made with OpenDocs\" footer). Brand colors lighter than 4.5:1 against white are refused with low_contrast unless allowLowContrast is true.",
+        "tags": [
+          "Workspace"
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "workspaceId"
+                ],
+                "properties": {
+                  "workspaceId": {
+                    "type": "string"
+                  },
+                  "preset": {
+                    "type": "string",
+                    "enum": [
+                      "classic",
+                      "boardroom",
+                      "editorial",
+                      "research",
+                      "studio",
+                      "field-guide",
+                      "letterpress",
+                      "terminal",
+                      "launch"
+                    ]
+                  },
+                  "brandColor": {
+                    "type": "string",
+                    "pattern": "^#?[0-9a-fA-F]{6}$"
+                  },
+                  "font": {
+                    "type": "string",
+                    "enum": [
+                      "Arial",
+                      "Inter",
+                      "IBM Plex Sans",
+                      "Lato",
+                      "Merriweather",
+                      "Vollkorn",
+                      "Roboto",
+                      "Manrope",
+                      "EB Garamond",
+                      "JetBrains Mono"
+                    ]
+                  },
+                  "showLogoInExports": {
+                    "type": "boolean"
+                  },
+                  "footer": {
+                    "type": "object",
+                    "properties": {
+                      "enabled": {
+                        "type": "boolean"
+                      },
+                      "companyName": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "tagline": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "linkUrl": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      },
+                      "linkLabel": {
+                        "type": [
+                          "string",
+                          "null"
+                        ]
+                      }
+                    }
+                  },
+                  "allowLowContrast": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated export theme",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "description": "Current export theme plus presets, fonts and guidelines."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "OpenDocs API key"
+      },
+      "cookieAuth": {
+        "type": "apiKey",
+        "in": "cookie",
+        "name": "better-auth.session_token"
+      }
+    },
+    "parameters": {
+      "PostIdPath": {
+        "name": "postId",
+        "in": "path",
+        "required": true,
+        "description": "Post UUID or slug. Slugs should be paired with workspaceId when the user belongs to multiple workspaces.",
+        "schema": {
+          "type": "string"
+        }
+      },
+      "WorkspaceIdQuery": {
+        "name": "workspaceId",
+        "in": "query",
+        "required": false,
+        "schema": {
+          "type": "string"
+        }
+      },
+      "RequiredWorkspaceIdQuery": {
+        "name": "workspaceId",
+        "in": "query",
+        "required": true,
+        "schema": {
+          "type": "string",
+          "format": "uuid"
+        }
+      },
+      "IdPath": {
+        "name": "id",
+        "in": "path",
+        "required": true,
+        "schema": {
+          "type": "string"
+        }
+      }
+    },
+    "requestBodies": {
+      "WorkspaceName": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "workspaceId": {
+                  "type": "string"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 2,
+                  "maxLength": 120
+                }
+              },
+              "required": [
+                "workspaceId",
+                "name"
+              ]
+            }
+          }
+        }
+      },
+      "BrandColor": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "workspaceId": {
+                  "type": "string"
+                },
+                "color": {
+                  "type": "string",
+                  "pattern": "^#[0-9A-Fa-f]{6}$"
+                }
+              },
+              "required": [
+                "workspaceId",
+                "color"
+              ]
+            }
+          }
+        }
+      },
+      "ExportFooter": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "workspaceId": {
+                  "type": "string"
+                },
+                "enabled": {
+                  "type": "boolean"
+                },
+                "companyName": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "tagline": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "linkUrl": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "format": "uri"
+                },
+                "linkLabel": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                }
+              },
+              "required": [
+                "workspaceId",
+                "enabled"
+              ]
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "Unauthorized": {
+        "description": "Missing or invalid authentication.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "InvalidRequest": {
+        "description": "The request body or parameters failed validation.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "The caller is authenticated but not allowed to perform this action.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "The resource does not exist or is not visible to the caller.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "The request conflicts with existing state.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Gone": {
+        "description": "The requested token or resource has expired.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "BillingFailed": {
+        "description": "Billing could not be updated for this action.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "DocumentLimit": {
+        "description": "The action would exceed the workspace document limit.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/DocumentLimitError"
+            }
+          }
+        }
+      },
+      "MissingWorkspace": {
+        "description": "workspaceId is required.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "PayloadTooLarge": {
+        "description": "Uploaded file is too large.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "RateLimited": {
+        "description": "Rate limit exceeded.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "ServiceUnavailable": {
+        "description": "A required service is not configured or unavailable.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Timeout": {
+        "description": "A required service timed out.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "UpstreamError": {
+        "description": "A required upstream service failed.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "schemas": {
+      "Visibility": {
+        "type": "string",
+        "enum": [
+          "private",
+          "workspace",
+          "public"
+        ]
+      },
+      "WorkspaceRole": {
+        "type": "string",
+        "enum": [
+          "admin",
+          "member"
+        ]
+      },
+      "Plan": {
+        "type": "string",
+        "enum": [
+          "free",
+          "pro",
+          "team"
+        ]
+      },
+      "ExportFormat": {
+        "type": "string",
+        "enum": [
+          "pdf",
+          "docx"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string"
+          },
+          "code": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "issues": {
+            "type": "object",
+            "additionalProperties": true
+          },
+          "docs_url": {
+            "type": "string",
+            "format": "uri",
+            "description": "Where the error code is explained, https://docs.opendocs.cc/errors#<code>."
+          }
+        }
+      },
+      "DocumentLimitError": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "string",
+            "const": "document_limit"
+          },
+          "plan": {
+            "$ref": "#/components/schemas/Plan"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "used": {
+            "type": "integer"
+          },
+          "requested": {
+            "type": "integer"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "error",
+          "plan",
+          "limit",
+          "used"
+        ]
+      },
+      "WorkspaceSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug"
+        ]
+      },
+      "WorkspaceMembership": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WorkspaceSummary"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "role": {
+                "$ref": "#/components/schemas/WorkspaceRole"
+              }
+            },
+            "required": [
+              "role"
+            ]
+          }
+        ]
+      },
+      "Quota": {
+        "type": [
+          "object",
+          "null"
+        ],
+        "properties": {
+          "plan": {
+            "$ref": "#/components/schemas/Plan"
+          },
+          "limit": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "null means unlimited."
+          },
+          "used": {
+            "type": "integer"
+          },
+          "remaining": {
+            "type": [
+              "integer",
+              "null"
+            ],
+            "description": "null means unlimited."
+          }
+        }
+      },
+      "MeResponse": {
+        "type": "object",
+        "properties": {
+          "authenticated": {
+            "type": "boolean",
+            "const": true
+          },
+          "userId": {
+            "type": "string"
+          },
+          "onboarding": {
+            "type": "object",
+            "properties": {
+              "username": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "workspace": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/WorkspaceSummary"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": true
+          },
+          "quota": {
+            "type": "object",
+            "properties": {
+              "documents": {
+                "$ref": "#/components/schemas/Quota"
+              }
+            },
+            "required": [
+              "documents"
+            ]
+          }
+        },
+        "required": [
+          "authenticated",
+          "userId",
+          "onboarding",
+          "quota"
+        ]
+      },
+      "PublishRequest": {
+        "type": "object",
+        "properties": {
+          "markdown": {
+            "type": "string",
+            "description": "Raw Markdown content. Maximum 1 MB."
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/Visibility"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20
+          },
+          "sourcePath": {
+            "type": "string"
+          },
+          "confirmPublic": {
+            "type": "boolean",
+            "description": "Required when visibility is public."
+          }
+        },
+        "required": [
+          "markdown",
+          "workspaceId"
+        ]
+      },
+      "PublishResponse": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "description": "Relative opendocs.cc path, e.g. /acme/plan or /acme/projects/launch/plan."
+          },
+          "publicUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Absolute link to share. The workspace's custom domain when the domain is active (any visibility; readers of documents that aren't public sign in there) (e.g. https://notes.example.com/plan), otherwise the opendocs.cc URL."
+          },
+          "title": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "postId",
+          "slug",
+          "url",
+          "title",
+          "publicUrl"
+        ]
+      },
+      "BatchPublishRequest": {
+        "type": "object",
+        "properties": {
+          "documents": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PublishRequest"
+            },
+            "minItems": 1,
+            "maxItems": 25
+          }
+        },
+        "required": [
+          "documents"
+        ]
+      },
+      "BatchPublishResponse": {
+        "type": "object",
+        "properties": {
+          "summary": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "integer"
+              },
+              "succeeded": {
+                "type": "integer"
+              },
+              "failed": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "total",
+              "succeeded",
+              "failed"
+            ]
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "anyOf": [
+                {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/PublishResponse"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "success": {
+                          "type": "boolean",
+                          "const": true
+                        },
+                        "index": {
+                          "type": "integer"
+                        }
+                      },
+                      "required": [
+                        "success",
+                        "index"
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "const": false
+                    },
+                    "index": {
+                      "type": "integer"
+                    },
+                    "error": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "success",
+                    "index",
+                    "error"
+                  ]
+                }
+              ]
+            }
+          }
+        },
+        "required": [
+          "summary",
+          "results"
+        ]
+      },
+      "Post": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "summary": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/Visibility"
+          },
+          "isPublished": {
+            "type": "boolean"
+          },
+          "publishedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "workspaceSlug": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "description": "Relative opendocs.cc path, e.g. /acme/plan or /acme/projects/launch/plan."
+          },
+          "publicUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Absolute link to share. The workspace's custom domain when the domain is active (any visibility; readers of documents that aren't public sign in there) (e.g. https://notes.example.com/plan), otherwise the opendocs.cc URL."
+          },
+          "versionNumber": {
+            "type": "integer"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "slug",
+          "title",
+          "visibility",
+          "isPublished",
+          "tags"
+        ]
+      },
+      "PostListResponse": {
+        "type": "object",
+        "properties": {
+          "posts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Post"
+            }
+          },
+          "pagination": {
+            "$ref": "#/components/schemas/Pagination"
+          }
+        },
+        "required": [
+          "posts",
+          "pagination"
+        ]
+      },
+      "Pagination": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer"
+          },
+          "limit": {
+            "type": "integer"
+          },
+          "total": {
+            "type": "integer"
+          },
+          "totalPages": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "page",
+          "limit",
+          "total",
+          "totalPages"
+        ]
+      },
+      "RawPostResponse": {
+        "type": "object",
+        "properties": {
+          "markdown": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "versionNumber": {
+            "type": "integer"
+          }
+        },
+        "required": [
+          "markdown",
+          "title",
+          "slug",
+          "versionNumber"
+        ]
+      },
+      "UpdatePostResponse": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "string"
+          },
+          "versionId": {
+            "type": "string"
+          },
+          "versionNumber": {
+            "type": "integer"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/Visibility"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "url": {
+            "type": "string",
+            "description": "Relative opendocs.cc path, e.g. /acme/plan or /acme/projects/launch/plan."
+          },
+          "publicUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Absolute link to share. The workspace's custom domain when the domain is active (any visibility; readers of documents that aren't public sign in there) (e.g. https://notes.example.com/plan), otherwise the opendocs.cc URL."
+          }
+        },
+        "required": [
+          "postId",
+          "versionId",
+          "versionNumber",
+          "slug",
+          "title",
+          "visibility",
+          "url",
+          "publicUrl"
+        ]
+      },
+      "ExportRequest": {
+        "type": "object",
+        "properties": {
+          "filename": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 120
+          },
+          "landscape": {
+            "type": "boolean"
+          },
+          "accent_color": {
+            "type": "string",
+            "pattern": "^#?[0-9A-Fa-f]{6}$"
+          },
+          "branding": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        }
+      },
+      "BatchExportRequest": {
+        "type": "object",
+        "properties": {
+          "postIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "maxItems": 10
+          },
+          "format": {
+            "$ref": "#/components/schemas/ExportFormat"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "landscape": {
+            "type": "boolean"
+          },
+          "accent_color": {
+            "type": "string",
+            "pattern": "^#?[0-9A-Fa-f]{6}$"
+          },
+          "branding": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "postIds",
+          "format"
+        ]
+      },
+      "TeamInviteRequest": {
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "format": "email",
+            "maxLength": 320
+          },
+          "role": {
+            "$ref": "#/components/schemas/WorkspaceRole"
+          },
+          "workspaceId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "email",
+          "role",
+          "workspaceId"
+        ]
+      },
+      "PublishInput": {
+        "type": "object",
+        "properties": {
+          "markdown": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/Visibility"
+          },
+          "confirmPublic": {
+            "type": "boolean"
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "projectSlug": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "sourcePath": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "markdown",
+          "workspaceId"
+        ]
+      },
+      "PublishResult": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "description": "Relative opendocs.cc path, e.g. /acme/plan or /acme/projects/launch/plan."
+          },
+          "publicUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Absolute link to share. The workspace's custom domain when the domain is active (any visibility; readers of documents that aren't public sign in there) (e.g. https://notes.example.com/plan), otherwise the opendocs.cc URL."
+          },
+          "title": {
+            "type": "string"
+          },
+          "versionNumber": {
+            "type": "integer"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "projectSlug": {
+            "type": "string"
+          }
+        }
+      },
+      "PostSummary": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "visibility": {
+            "type": "string"
+          },
+          "isPublished": {
+            "type": "boolean"
+          },
+          "updatedAt": {
+            "type": "string"
+          },
+          "versionNumber": {
+            "type": "integer"
+          },
+          "workspaceSlug": {
+            "type": "string"
+          },
+          "projectSlug": {
+            "type": "string"
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "url": {
+            "type": "string",
+            "description": "Relative opendocs.cc path, e.g. /acme/plan or /acme/projects/launch/plan."
+          },
+          "publicUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Absolute link to share. The workspace's custom domain when the domain is active (any visibility; readers of documents that aren't public sign in there) (e.g. https://notes.example.com/plan), otherwise the opendocs.cc URL."
+          }
+        }
+      },
+      "AnonymousDoc": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          },
+          "claimToken": {
+            "type": "string"
+          },
+          "claimUrl": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string"
+          },
+          "anonymous": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Shares": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "string"
+          },
+          "emails": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "domains": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "UpdateRequest": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/PublishRequest"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "baseVersionNumber": {
+                "type": "integer",
+                "description": "Version your copy is based on. 409 version_conflict if the post has moved past it."
+              }
+            }
+          }
+        ]
+      },
+      "VisibilityResponse": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "string"
+          },
+          "visibility": {
+            "$ref": "#/components/schemas/Visibility"
+          },
+          "url": {
+            "type": "string",
+            "description": "Relative opendocs.cc path, e.g. /acme/plan or /acme/projects/launch/plan."
+          },
+          "publicUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Absolute link to share. The workspace's custom domain when the domain is active (any visibility; readers of documents that aren't public sign in there) (e.g. https://notes.example.com/plan), otherwise the opendocs.cc URL."
+          }
+        },
+        "required": [
+          "postId",
+          "visibility",
+          "url",
+          "publicUrl"
+        ]
+      },
+      "MoveResponse": {
+        "type": "object",
+        "properties": {
+          "postId": {
+            "type": "string"
+          },
+          "slug": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "description": "Relative opendocs.cc path, e.g. /acme/plan or /acme/projects/launch/plan."
+          },
+          "publicUrl": {
+            "type": "string",
+            "format": "uri",
+            "description": "Absolute link to share. The workspace's custom domain when the domain is active (any visibility; readers of documents that aren't public sign in there) (e.g. https://notes.example.com/plan), otherwise the opendocs.cc URL."
+          },
+          "projectId": {
+            "type": "string"
+          },
+          "projectSlug": {
+            "type": "string"
+          },
+          "projectName": {
+            "type": "string"
+          },
+          "isDefaultProject": {
+            "type": "boolean"
+          },
+          "moved": {
+            "type": "boolean"
+          },
+          "previousSlug": {
+            "type": "string",
+            "description": "The slug before the move, when it changed."
+          }
+        },
+        "required": [
+          "postId",
+          "slug",
+          "url",
+          "publicUrl",
+          "projectId",
+          "projectSlug",
+          "moved"
+        ]
+      },
+      "CustomDomainRecord": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "CNAME",
+              "A",
+              "TXT"
+            ]
+          },
+          "name": {
+            "type": "string",
+            "description": "Full record name, e.g. notes.example.com or _opendocs.notes.example.com."
+          },
+          "host": {
+            "type": "string",
+            "description": "The same name relative to the domain (notes, _opendocs.notes, or @), for DNS providers that ask for that."
+          },
+          "value": {
+            "type": "string",
+            "description": "custom.opendocs.cc, an IPv4 address, or opendocs-verify=<token>."
+          },
+          "purpose": {
+            "type": "string",
+            "enum": [
+              "routing",
+              "verification"
+            ]
+          },
+          "check": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "enum": [
+              "ok",
+              "missing",
+              "mismatch",
+              "conflict",
+              "proxied",
+              "error",
+              null
+            ],
+            "description": "Result of the last check for this record; null before the first check."
+          }
+        },
+        "required": [
+          "type",
+          "name",
+          "host",
+          "value",
+          "purpose",
+          "check"
+        ]
+      },
+      "CustomDomain": {
+        "type": "object",
+        "description": "A workspace's custom domain for its reader pages.",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "workspaceId": {
+            "type": "string"
+          },
+          "hostname": {
+            "type": "string",
+            "description": "Lowercase, punycode for non-ASCII names."
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "subdomain",
+              "apex"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "active",
+              "misconfigured"
+            ],
+            "description": "DNS status as stored. misconfigured after three scheduled checks in a row failed."
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "pending",
+              "verifying",
+              "active",
+              "misconfigured",
+              "paused"
+            ],
+            "description": "What the dashboard shows. verifying: records found in the last 10 minutes, the certificate is issued on the first visit. paused: the workspace's plan doesn't include custom domains."
+          },
+          "serving": {
+            "type": "boolean",
+            "description": "True when the domain serves the workspace's pages right now."
+          },
+          "url": {
+            "type": "string",
+            "format": "uri",
+            "description": "https://<hostname>"
+          },
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CustomDomainRecord"
+            }
+          },
+          "lastError": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "properties": {
+              "code": {
+                "type": "string",
+                "enum": [
+                  "txt_missing",
+                  "txt_mismatch",
+                  "txt_conflict",
+                  "target_missing",
+                  "target_mismatch",
+                  "cloudflare_proxied",
+                  "ipv6_mismatch",
+                  "dns_error",
+                  "domain_taken"
+                ]
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "message"
+            ]
+          },
+          "consecutiveFailures": {
+            "type": "integer"
+          },
+          "verifiedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "lastCheckedAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "failingSince": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "showPoweredBy": {
+            "type": "boolean",
+            "description": "Whether the domain's footer shows \"Published with OpenDocs\". Change it with PATCH /api/v1/workspace/domain."
+          }
+        },
+        "required": [
+          "id",
+          "workspaceId",
+          "hostname",
+          "kind",
+          "status",
+          "state",
+          "serving",
+          "url",
+          "records",
+          "lastError",
+          "consecutiveFailures",
+          "verifiedAt",
+          "lastCheckedAt",
+          "failingSince",
+          "createdAt",
+          "showPoweredBy"
+        ]
+      },
+      "CustomDomainResponse": {
+        "type": "object",
+        "properties": {
+          "domain": {
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/CustomDomain"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null when the workspace has no custom domain."
+          },
+          "plan": {
+            "type": "object",
+            "properties": {
+              "tier": {
+                "$ref": "#/components/schemas/Plan"
+              },
+              "allowed": {
+                "type": "boolean",
+                "description": "Whether the workspace's plan includes custom domains (Pro and Team)."
+              }
+            },
+            "required": [
+              "tier",
+              "allowed"
+            ]
+          }
+        },
+        "required": [
+          "domain",
+          "plan"
+        ]
+      },
+      "CustomDomainError": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Error"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "error": {
+                "type": "string",
+                "enum": [
+                  "plan_required",
+                  "invalid_hostname",
+                  "domain_taken",
+                  "forbidden",
+                  "not_found"
+                ]
+              },
+              "tier": {
+                "$ref": "#/components/schemas/Plan",
+                "description": "With plan_required."
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "empty",
+                  "invalid",
+                  "ip_address",
+                  "too_long",
+                  "single_label",
+                  "reserved",
+                  "opendocs",
+                  "apex_unsupported"
+                ],
+                "description": "With invalid_hostname."
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

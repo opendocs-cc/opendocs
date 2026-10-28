@@ -1,0 +1,31 @@
+{
+  "name": "@opendocs/mcp",
+  "version": "0.1.0",
+  "private": true,
+  "license": "FSL-1.1-MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "start": "tsx src/index.ts",
+    "typecheck": "tsc",
+    "test": "vitest run",
+    "gen:tool-docs": "tsx scripts/gen-tool-docs.ts"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/express": "^2.0.2",
+    "@modelcontextprotocol/node": "^2.1.2",
+    "@modelcontextprotocol/server": "^2.4.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.1.0",
+    "jose": "^6.2.13",
+    "zod": "^4.2.0"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "^2.4.0",
+    "@types/express": "^5.0.2",
+    "@types/node": "^24.3.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.9.2",
+    "vitest": "^4.1.4"
+  }
+}

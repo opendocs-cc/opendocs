@@ -1,0 +1,107 @@
+---
+slug: /
+title: OpenDocs documentation
+description: Your agent writes the Markdown. OpenDocs files it in the right project, shares it as a link and exports branded PDF and Word files.
+hide_title: true
+hide_table_of_contents: true
+---
+
+import Link from '@docusaurus/Link';
+
+<div className="od-hero">
+  <p className="od-eyebrow">Documentation</p>
+  <h1>Your agent writes it. OpenDocs publishes it.</h1>
+  {/* Keep each paragraph on one line: across lines MDX wraps the text in a
+      second <p>, and the nested paragraph breaks React hydration. */}
+  <p className="od-lede">OpenDocs turns the Markdown your agent writes into organized, shareable links and on-brand PDF and Word files. You don't learn a tool: you paste one prompt into your agent, then ask for what you need in plain words.</p>
+</div>
+
+<div className="od-prompt">
+
+```text title="Paste this into Claude Code, Codex, Cursor or any agent"
+I'd like you to set up OpenDocs: Markdown publishing for agents (shareable links, plus PDF and DOCX export).
+
+Install as a skill if I have npm: npx skills add opendocs-cc/skills --skill opendocs -g -y
+
+If not, do this instead: curl -fsSL https://opendocs.cc/install.sh | bash
+
+The npx installer may end with "PromptScript does not support global skill installation". That's a known installer bug that only affects PromptScript; the skill is still installed.
+
+Then sign me up (it's free): ask for my email, run opendocs login --email <my email>, and I'll paste the 6-digit code it sends me.
+
+After that, read the agent quickstart at https://docs.opendocs.cc/getting-started/agent-quickstart.md and ask me what I'd like to publish
+```
+
+</div>
+
+<p className="od-hero-note">Your agent installs OpenDocs, emails you a sign-in code and asks what to publish. Free for up to 50 documents. <Link to="/getting-started/quickstart">Walk through the quickstart</Link> or <a href="https://opendocs.cc/signup">sign up in the browser</a>.</p>
+
+## Then just ask
+
+<div className="od-asks">
+  <div className="od-ask">
+    <p className="od-ask-quote">“Publish the Q3 investor update to the Investors project and send me the PDF.”</p>
+    <p className="od-ask-result">A link your workspace can open, and a branded PDF next to the file.</p>
+  </div>
+  <div className="od-ask">
+    <p className="od-ask-quote">“Share the onboarding handbook with {"dana@halvard.example"}.”</p>
+    <p className="od-ask-result">Dana gets an email and can read that one document.</p>
+  </div>
+  <div className="od-ask">
+    <p className="od-ask-quote">“Use the Boardroom preset with our logo.”</p>
+    <p className="od-ask-result">Every PDF and Word file follows your brand from now on.</p>
+  </div>
+  <div className="od-ask">
+    <p className="od-ask-quote">“Roll the pricing spec back to yesterday’s version.”</p>
+    <p className="od-ask-result">The old version comes back as a new one. Nothing is lost.</p>
+  </div>
+</div>
+
+<p className="od-more"><Link to="/getting-started/what-to-ask">More things to ask your agent</Link></p>
+
+## Find your way around
+
+<div className="od-grid">
+  <Link className="od-card od-card--wide" to="/integrations/overview">
+    <span className="od-card-kicker">Your agent</span>
+    <strong>Set up your agent</strong>
+    <span>Claude Code, Codex, Cursor, Copilot, Cline and any agent that can run a command.</span>
+  </Link>
+  <Link className="od-card" to="/getting-started/how-opendocs-works">
+    <span className="od-card-kicker">Concepts</span>
+    <strong>How OpenDocs works</strong>
+    <span>Workspaces, projects, documents and versions.</span>
+  </Link>
+  <Link className="od-card" to="/publishing/publish">
+    <span className="od-card-kicker">Documents</span>
+    <strong>Publish and update</strong>
+    <span>Stable links that keep every version.</span>
+  </Link>
+  <Link className="od-card" to="/publishing/branded-exports">
+    <span className="od-card-kicker">Exports</span>
+    <strong>PDF, Word and branding</strong>
+    <span>Presets, fonts, your logo and footer.</span>
+  </Link>
+  <Link className="od-card" to="/visibility/overview">
+    <span className="od-card-kicker">Sharing</span>
+    <strong>Who can see a document</strong>
+    <span>Private, workspace, shared with people or public.</span>
+  </Link>
+  <Link className="od-card" to="/integrations/google-drive">
+    <span className="od-card-kicker">Integrations</span>
+    <strong>Google Drive and e-signatures</strong>
+    <span>Save to Drive folders. Send documents for signing.</span>
+  </Link>
+  <Link className="od-card" to="/cli/reference">
+    <span className="od-card-kicker">Reference</span>
+    <strong>CLI and REST API</strong>
+    <span>Every command your agent runs, and every endpoint.</span>
+  </Link>
+</div>
+
+## For agents
+
+Every page is also available as Markdown: add `.md` to the URL. Start with the
+[agent quickstart](/getting-started/agent-quickstart), find every page in
+[llms.txt](https://docs.opendocs.cc/llms.txt), or read the whole site in one file at
+[llms-full.txt](https://docs.opendocs.cc/llms-full.txt).

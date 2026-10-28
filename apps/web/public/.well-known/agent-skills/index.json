@@ -1,0 +1,9 @@
+{
+  "skills": [
+    {
+      "name": "opendocs",
+      "description": "Publish Markdown to shareable links and export PDF or DOCX with OpenDocs. Use when the user wants to publish, share, host or send a Markdown document, turn notes into a link, or get a PDF/Word version of Markdown. Works with the opendocs npm CLI or, without Node.js, the bundled scripts/opendocs.sh (curl + jq).",
+      "files": ["SKILL.md", "scripts/opendocs.sh"]
+    }
+  ]
+}

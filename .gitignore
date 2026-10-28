@@ -1,0 +1,50 @@
+site/
+venv/
+__pycache__/
+.cache/
+node_modules/
+.next/
+.vercel/
+.env
+.env.local
+.env.*.local
+# Backups of server settings (deploy/.env.bak-*)
+.env.bak*
+dist/
+coverage/
+*.tsbuildinfo
+docs/
+# The web app's /docs route (agent markdown + redirect to docs.opendocs.cc).
+!apps/web/app/docs/
+!apps/web/app/docs/**
+!apps/docs/
+!apps/docs/package.json
+!apps/docs/docusaurus.config.js
+!apps/docs/sidebars.js
+!apps/docs/Dockerfile
+!apps/docs/nginx.conf
+!apps/docs/docs/
+!apps/docs/docs/**
+!apps/docs/src/
+!apps/docs/src/**
+!apps/docs/static/
+!apps/docs/static/**
+apps/docs/build/
+.DS_Store
+private-docs/
+
+# Local-only AI assistant context file (never commit)
+CONTEXT.md
+
+# Hashed assets from earlier docs builds (server only, see deploy/DOCKER.md)
+deploy/docs-legacy-assets/
+
+# Private add-ons (packages/ads/README.md), never committed here.
+/addons/
+
+# Docusaurus build cache
+apps/docs/.docusaurus/
+
+# Private notes and plans, wherever they are
+*.private.md
+private/

@@ -1,0 +1,138 @@
+services:
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      # The instance's domain (the Caddyfile serves it, api., mcp. and,
+      # with OPENDOCS_DOCS_SITE=on, docs.). opendocs.cc when unset.
+      - OPENDOCS_DOMAIN=${OPENDOCS_DOMAIN:-opendocs.cc}
+      - OPENDOCS_DOCS_SITE=${OPENDOCS_DOCS_SITE:-off}
+    depends_on:
+      - web
+      - api
+      - mcp
+
+  web:
+    build:
+      context: ..
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL}
+        # The instance's own addresses, for pages rendered in the browser.
+        NEXT_PUBLIC_WEB_URL: ${BETTER_AUTH_URL:-https://opendocs.cc}
+        NEXT_PUBLIC_MCP_URL: ${MCP_RESOURCE_URL:-https://mcp.opendocs.cc/mcp}
+        NEXT_PUBLIC_SELF_HOSTED: ${SELF_HOSTED:-false}
+        NEXT_PUBLIC_PLAUSIBLE_DOMAIN: ${NEXT_PUBLIC_PLAUSIBLE_DOMAIN:-}
+        NEXT_PUBLIC_AD_PIXELS_ENABLED: ${NEXT_PUBLIC_AD_PIXELS_ENABLED:-}
+        # The ads add-on to build with (see packages/ads/README.md).
+        ADS_DIR: ${ADS_DIR:-packages/ads}
+        # Paddle client tokens are inlined into the JS bundle at build time.
+        # Both tokens (sandbox + live) are baked so the runtime BILLING_MODE
+        # flag can flip between them without a rebuild. Tokens are scoped
+        # "public" by Paddle design (like a Stripe publishable key) — safe
+        # to embed in the browser bundle.
+        NEXT_PUBLIC_PADDLE_SANDBOX_CLIENT_TOKEN: ${NEXT_PUBLIC_PADDLE_SANDBOX_CLIENT_TOKEN:-}
+        NEXT_PUBLIC_PADDLE_LIVE_CLIENT_TOKEN: ${NEXT_PUBLIC_PADDLE_LIVE_CLIENT_TOKEN:-}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      # The API over the Compose network, for the custom-domain download
+      # route (apps/web/app/%5Fopendocs/download).
+      - INTERNAL_API_URL=http://api:4000
+
+  # docs.opendocs.cc. Optional: only built and started with the "docs"
+  # profile (COMPOSE_PROFILES=docs in .env), and served with
+  # OPENDOCS_DOCS_SITE=on. Self-hosted instances link to docs.opendocs.cc.
+  docs:
+    profiles: ["docs"]
+    build:
+      context: ..
+      dockerfile: apps/docs/Dockerfile
+    restart: unless-stopped
+    volumes:
+      # Hashed assets from earlier docs builds, served as a fallback (see
+      # apps/docs/nginx.conf and the Docs section of DOCKER.md).
+      - ./docs-legacy-assets:/usr/share/nginx/legacy/assets:ro
+
+  api:
+    build:
+      context: ..
+      dockerfile: apps/api/Dockerfile
+      args:
+        # The ads add-on to build with (see packages/ads/README.md).
+        ADS_DIR: ${ADS_DIR:-packages/ads}
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+      # Internal server for Caddy's on-demand TLS ask (api:4001 on the
+      # Compose network). Not published on the host and never proxied.
+      - INTERNAL_PORT=4001
+      - DOC_CONVERTER_URL=${DOC_CONVERTER_URL:-http://converter:8080}
+
+  # MCP server (mcp.<domain>): lets Claude, ChatGPT, Cursor and other AI
+  # apps use OpenDocs. Deliberately no env_file: it holds no database,
+  # storage or auth secrets. It verifies OAuth access tokens against the
+  # web app's public JWKS and calls the API as the signed-in user.
+  mcp:
+    build:
+      context: ..
+      dockerfile: apps/mcp/Dockerfile
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+      - PORT=4100
+      - MCP_RESOURCE_URL=${MCP_RESOURCE_URL:-https://mcp.opendocs.cc/mcp}
+      - API_INTERNAL_URL=http://api:4000
+      - PUBLIC_WEB_URL=${BETTER_AUTH_URL:-https://opendocs.cc}
+      - OAUTH_ISSUER=${BETTER_AUTH_URL:-https://opendocs.cc}/api/auth
+      - SELF_HOSTED=${SELF_HOSTED:-false}
+      # From OpenAI's plugin portal (domain verification); set in deploy/.env.
+      - OPENAI_APPS_CHALLENGE=${OPENAI_APPS_CHALLENGE:-}
+    depends_on:
+      - api
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Keep conversion on this host, with bounded concurrency and resources so
+  # LibreOffice cannot consume the whole VPS. Clone doc-converter alongside
+  # opendocs, or override the build context.
+  #
+  # Sizing: one worker per CPU (more workers is slower) and about 0.5 GB plus
+  # 0.5 GB per worker. On a 4 vCPU / 8 GB box: CONVERT_MAX_WORKERS=3,
+  # cpus "3.0", mem_limit and memswap_limit 2G (leaves a vCPU for the rest).
+  converter:
+    build:
+      context: ${DOC_CONVERTER_BUILD_CONTEXT:-../../doc-converter}
+    restart: unless-stopped
+    environment:
+      - CONVERT_MAX_WORKERS=1
+    cpus: "1.0"
+    mem_limit: 1500M
+    # Equal memory + swap limits disable container swap to avoid thrashing.
+    memswap_limit: 1500M
+    # No host port: API calls http://converter:8080 on the Compose network.
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  caddy_data:
+  caddy_config:

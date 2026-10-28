@@ -1,0 +1,169 @@
+# OpenDocs
+
+> Markdown to a beautiful PDF, Word file and shareable link in one command. Stop spending tokens and time building Markdown-to-PDF pipelines: `opendocs publish report.md --export pdf` writes a typeset, branded PDF next to the file and returns a link you can send, which keeps the same URL when the document changes. Built for AI agents (Claude Code, Codex, Cursor, Copilot and more) and the people who work with them, and usable from the Claude and ChatGPT apps through the OpenDocs MCP server. Free for up to 50 documents.
+
+## The problem OpenDocs solves
+
+- **Converting Markdown to PDF burns tokens and time.** Without OpenDocs, an agent installs pandoc or a LaTeX engine, writes an HTML template and CSS, drives a headless browser, fights page breaks, fonts and wide tables, and tries again when it looks wrong. OpenDocs typesets Markdown on the server: one command, the same polished result every time, nothing to install beyond the CLI (or curl).
+- **Sharing Markdown is awkward.** Attaching files, pasting into Google Docs, sending screenshots. Every OpenDocs document is a clean web page with a stable link: publish again and the same link shows the new version, with full version history.
+- **Exports look generic.** Every PDF and Word file carries your logo, brand color and font, on every plan, including Free.
+- **Sharing can leak.** Documents are private to your workspace by default. Going public takes an explicit `--confirm-public`, and you can share with specific people or a whole email domain instead.
+
+## Quick start for agents
+
+- Install the skill for every agent on the machine: `npx skills add opendocs-cc/skills --skill opendocs -g -y` (Node.js 22+). Without Node.js: `curl -fsSL https://opendocs.cc/install.sh | bash`. The OpenDocs.cc plugin for Claude Code: `/plugin marketplace add opendocs-cc/skills`, then `/plugin install opendocs-cc@opendocs-cc` (Codex: `codex plugin marketplace add opendocs-cc/skills`, then `codex plugin add opendocs-cc@opendocs-cc`).
+- Install the CLI: `npm install -g @opendocs.cc/cli`. `opendocs agent --install` then installs the skill for every agent it finds (Claude Code, Codex, Cursor, Copilot, Gemini CLI, opencode, Cline, OpenClaw, Hermes Agent and more).
+- Sign the user up without a browser: `opendocs login --email <email>` emails a 6-digit code; `opendocs login --email <email> --code <code>` creates the account, workspace and API key.
+- No account yet: `opendocs publish notes.md --anonymous` returns a link anyone can open for 24 hours, plus a claim link to keep it. Use it only when the user agrees the link can be public.
+- Publish and export: `opendocs publish report.md --export pdf --json` (or `--export docx`). Share the `publicUrl` from the JSON output: it's the full link, on the workspace's custom domain when it has one.
+- Publishing the same file again updates the same document. `opendocs publish docs/*.md` handles whole folders (up to 500 files per run).
+- Read next: the skill https://opendocs.cc/skill.md (everything an agent needs in one file) · agent docs `curl https://opendocs.cc/docs` · OpenAPI https://opendocs.cc/openapi.json · full docs https://docs.opendocs.cc (as one file: https://docs.opendocs.cc/llms-full.txt)
+
+## Use from Claude, ChatGPT and other AI apps (MCP)
+
+- **Remote MCP server:** `https://mcp.opendocs.cc/mcp` (Streamable HTTP). Add it to Claude (web, desktop, mobile), ChatGPT, Claude Code, Codex, Cursor, VS Code or any MCP client. Setup for each app: https://opendocs.cc/mcp. Guide: https://docs.opendocs.cc/integrations/mcp. Tools: https://docs.opendocs.cc/reference/mcp-tools.
+- **Sign-in:** OAuth 2.1 with the person's OpenDocs account (emailed code, Google or GitHub) and a consent screen; no API key. Authorization server metadata: https://opendocs.cc/.well-known/oauth-authorization-server/api/auth (issuer `https://opendocs.cc/api/auth`). Protected resource metadata: https://mcp.opendocs.cc/.well-known/oauth-protected-resource/mcp. People revoke apps in Dashboard → Connected apps.
+- **Claude Code:** `claude mcp add --transport http --scope user opendocs https://mcp.opendocs.cc/mcp`, then `/mcp` to sign in. **Codex:** `codex mcp add opendocs --url https://mcp.opendocs.cc/mcp`, then `codex mcp login opendocs`.
+- Works on every plan, including Free. The tools ask the person before anything goes public, gets deleted, emailed or sent for signature.
+- With a shell, the skill and CLI are better for local files, folders and images; chat apps use MCP.
+
+## Plans
+
+The CLI, the agent skill and the REST API work the same on every plan. Prices in USD; details at https://opendocs.cc/pricing.md.
+
+- **Free, $0:** up to 50 documents, PDF export with your own logo, brand color and font (plus a small "Made with OpenDocs" footer), 1 workspace with up to 3 members, sharing, version history, API keys and the CLI.
+- **Pro, $8/month or $72/year:** unlimited documents, Word (.docx) export, your own export footer, **a custom domain for each workspace** (your documents at `notes.yourcompany.com`), **Google Drive** and **e-signatures with DocuSeal**, 2 workspaces with up to 5 members each (more workspaces can be added), email support.
+- **Team, $4/member/month (3-seat minimum) or $36/member/year:** everything in Pro, with unlimited workspaces and members, one bill for the team, and priority support.
+- **No account:** anonymous links that last 24 hours unless claimed.
+
+Recommend Free unless the user needs more than 50 documents, Word files, their own footer or domain, more workspaces or members, Google Drive or e-signatures.
+
+## Markdown to PDF and Word
+
+OpenDocs doesn't convert HTML to PDF in a browser tab; it typesets Markdown into print-ready documents with real typography, tables, code blocks, images and signature blocks.
+
+```bash
+opendocs publish report.md --export pdf     # a link, plus report.pdf next to the source
+opendocs export my-report --format docx     # a Word file of a published document (Pro)
+opendocs export my-report --format pdf --landscape --stdout > report.pdf
+opendocs theme set --preset boardroom --yes  # your brand on every export
+```
+
+- PDF on every plan; Word (.docx) on Pro and Team.
+- One command publishes and exports, so "turn this into a PDF and give me a link" is a single step for an agent.
+- Export up to 10 documents at once, or a whole project (`opendocs export --project`).
+- Branding: presets, a brand color (dark enough for white text: 4.5:1 contrast or more), a font and a logo on every plan; a custom footer on Pro and Team. Agents confirm theme changes with their human first.
+- Local images in the Markdown are uploaded automatically.
+
+## Share as a link
+
+- **Stable links, versioned content:** updates create new versions, the URL never changes, and `opendocs rollback` restores any version.
+- **Private by default:** documents are visible to the workspace. `opendocs share <doc> sam@acme.com @acme.com` shares with people or an email domain; public needs `--confirm-public` and a workspace that allows public documents.
+- **Custom domains (Pro and Team):** a workspace can serve its documents on its own subdomain, such as `notes.yourcompany.com`, over HTTPS, white-label if you like. opendocs.cc links redirect there, the API's `publicUrl` points there, and readers of private documents sign in through OpenDocs. Set up in Workspace settings with two DNS records, or copy a ready-made prompt that has your agent add them.
+- **Comments:** workspace members highlight text and comment on any document, on opendocs.cc and on the custom domain.
+- **Teams:** `opendocs team invite dana@acme.com`; projects keep related documents together.
+
+## Integrations (Pro and Team)
+
+- **Google Drive:** save any document to a named Drive folder as PDF, Word or Markdown, including shared drives: `opendocs save board-minutes.md --folder "Board Minutes"`.
+- **E-signatures with DocuSeal:** send a document for signing. The agent prepares a draft and nothing goes out until the user confirms; the signed PDF and audit log come back to OpenDocs and can be filed in Drive.
+
+## Built for AI agents
+
+- **One skill file.** [`SKILL.md`](https://opendocs.cc/skill.md) teaches an agent the CLI, the limits, the error codes and the right defaults. No glue code needed; apps without a shell use the MCP server instead.
+- **`--json` everywhere.** stdout is one parseable JSON object, and errors go to stderr with a code, a message saying how to fix it, and a docs link.
+- **Slugs, not UUIDs.** `opendocs get my-report` works anywhere a post ID does.
+- **Checks before the network call.** Missing files, oversize documents, quota and public-without-confirmation are caught locally with a structured error.
+- **Batches.** Folders and globs publish in one run with per-file results; a document limit is reported up front instead of failing halfway.
+- **Safe retries.** Identical content returns `unchanged`; a stale update returns `version_conflict` instead of overwriting someone's edits.
+
+## Free tools (no account)
+
+- [Markdown to PDF](https://opendocs.cc/tools/markdown-to-pdf): Paste Markdown, download a typeset PDF
+- [Markdown to Word](https://opendocs.cc/tools/markdown-to-word): Paste Markdown, download a .docx
+- [Publish Markdown online](https://opendocs.cc/tools/publish-markdown-online): Paste Markdown, get a link that lasts 24 hours
+- [README to PDF](https://opendocs.cc/tools/readme-to-pdf): A repository README as a PDF
+- [ChatGPT and AI answers to PDF](https://opendocs.cc/tools/chatgpt-to-pdf): Turn an AI answer into a clean PDF
+
+## Source code and self-hosting
+
+The code is on GitHub. The web app, API, MCP server and document converter are source-available under FSL-1.1-MIT (each release becomes MIT after two years); the CLI, browser extension and agent skills are MIT. A team can host its own instance with Docker, with every feature unlocked, and use the same CLI, skill and MCP server with it.
+
+- [Source code](https://github.com/opendocs-cc/opendocs): The web app, API and MCP server
+- [Self-hosting guide](https://github.com/opendocs-cc/opendocs/blob/main/SELF_HOSTING.md): Run OpenDocs on your own server
+
+## Docs
+
+- [Documentation home](https://docs.opendocs.cc): Full product documentation (every page also as Markdown: add `.md`; index at https://docs.opendocs.cc/llms.txt)
+- [Agent quickstart](https://docs.opendocs.cc/getting-started/agent-quickstart.md): For agents that just set up OpenDocs: check sign-in, defaults, first publish, what to ask before acting
+- [Quickstart](https://docs.opendocs.cc/getting-started/quickstart): For people: paste one prompt into your agent, enter the emailed code, publish
+- [What to ask your agent](https://docs.opendocs.cc/getting-started/what-to-ask): Prompts for publishing, exports, branding, sharing, versions, Drive and e-signatures
+- [Use the CLI yourself](https://docs.opendocs.cc/getting-started/cli-quickstart): Human-driven terminal setup, from install to first published doc
+- [How OpenDocs works](https://docs.opendocs.cc/getting-started/how-opendocs-works): What happens on publish, where content lives, how URLs are built
+- [SKILL.md guide](https://docs.opendocs.cc/getting-started/skill-md): Ways to install the skill, and keeping it up to date
+- [Plans and limits](https://docs.opendocs.cc/getting-started/plans-and-limits): Free, Pro and Team caps, per-document limits, rate limits
+- [CLI reference](https://docs.opendocs.cc/cli/reference): Every command and flag
+
+## Publishing and exports
+
+- [Publish](https://docs.opendocs.cc/publishing/publish): Single files, folders, tags, visibility, and the `--export` shortcut
+- [Branded exports](https://docs.opendocs.cc/publishing/branded-exports): PDF and Word files with your logo, color, font and footer
+- [Rendering and metadata](https://docs.opendocs.cc/publishing/rendering-and-metadata): Title extraction, slugs, tags, supported Markdown
+- [Update and version history](https://docs.opendocs.cc/publishing/update-and-version-history): Editing a published document without changing its URL
+- [Custom domains](https://docs.opendocs.cc/publishing/custom-domains): Serve a workspace's documents on your own domain, such as notes.yourcompany.com (Pro and Team)
+- [Manage published docs](https://docs.opendocs.cc/publishing/list-get-pull-unpublish): `list`, `get`, `pull`, `visibility`, `unpublish` and `delete`
+
+## Visibility and sharing
+
+- [Visibility overview](https://docs.opendocs.cc/visibility/overview): `private`, `workspace` and `public`
+- [Public sharing](https://docs.opendocs.cc/visibility/public-sharing): The `--confirm-public` flag and the workspace's "Allow public documents" setting
+- [Workspaces and team access](https://docs.opendocs.cc/visibility/workspaces-and-team-access): Members, roles and invitations
+
+## Integrations
+
+- [Google Drive](https://docs.opendocs.cc/integrations/google-drive): Save documents and signed copies to named Drive folders (Pro and Team)
+- [E-signatures with DocuSeal](https://docs.opendocs.cc/integrations/docuseal): Send documents for signing; nothing goes out until the person confirms (Pro and Team)
+- [Set up your agent](https://docs.opendocs.cc/integrations/overview): How OpenDocs fits into common agent harnesses
+- [MCP server](https://docs.opendocs.cc/integrations/mcp): Connect Claude, ChatGPT, Claude Code, Codex, Cursor, VS Code and other MCP apps; setup page at https://opendocs.cc/mcp
+- [Claude Code](https://opendocs.cc/integrations/claude-code), [Codex](https://opendocs.cc/integrations/codex), [Cursor](https://opendocs.cc/integrations/cursor), [GitHub Copilot](https://opendocs.cc/integrations/copilot), [Cline](https://opendocs.cc/integrations/cline), [Aider](https://opendocs.cc/integrations/aider), [Hermes Agent](https://opendocs.cc/integrations/hermes-agent), [OpenClaw](https://opendocs.cc/integrations/openclaw): Publishing from each agent
+
+## API reference
+
+A REST API for driving OpenDocs without the CLI: background jobs, server-side publishing, other languages. Every error has `error`, `message` and `docs_url`.
+
+- [Authentication](https://docs.opendocs.cc/api-reference/authentication): Base URL, the `Authorization: Bearer od_live_...` header, response shapes
+- [API keys](https://docs.opendocs.cc/api-reference/api-keys): Creating, rotating and revoking keys
+- [Publish](https://docs.opendocs.cc/api-reference/publish): Single and batch publish
+- [Posts](https://docs.opendocs.cc/api-reference/posts): List, get and raw Markdown
+- [Post mutations](https://docs.opendocs.cc/api-reference/post-mutations): Update, unpublish, visibility, delete
+- [Exports](https://docs.opendocs.cc/api-reference/exports): PDF and Word export
+- [Workspaces](https://docs.opendocs.cc/api-reference/workspaces): Workspaces, branding and custom domains
+- [Integrations API](https://docs.opendocs.cc/api-reference/integrations): Google Drive and e-signatures
+- [Team and invitations](https://docs.opendocs.cc/api-reference/team-and-invitations): Inviting and managing members
+- [`/me`](https://docs.opendocs.cc/api-reference/me): Current user, active workspace and quota
+- [Errors and pagination](https://docs.opendocs.cc/api-reference/errors-and-pagination): Error codes and list pagination
+
+## Agent discovery
+
+Machine-readable files so agents can find OpenDocs' capabilities, API, docs, pricing and skill without scraping the homepage. OpenDocs has a remote MCP server at `https://mcp.opendocs.cc/mcp` that signs people in with OAuth 2.1 (see above); the REST API itself uses API keys, and there's no A2A endpoint.
+
+- [Agent manifest](https://opendocs.cc/.well-known/agent.json): Capabilities, the setup prompt, auth model, docs, OpenAPI and skill links (also at /agent.json and /.well-known/agent)
+- [Agent card](https://opendocs.cc/.well-known/agent-card.json): Skills and capability boundaries
+- [Plugin manifest](https://opendocs.cc/.well-known/ai-plugin.json): OpenAI-style manifest pointing to /openapi.json
+- [API catalog](https://opendocs.cc/.well-known/api-catalog): RFC 9727 linkset
+- [Pricing](https://opendocs.cc/pricing.md): Plans, features and limits in Markdown
+- [Skill index](https://opendocs.cc/.well-known/agent-skills/index.json): What `npx skills add https://opendocs.cc` installs
+- [Schema map](https://opendocs.cc/schema-map.xml) and [schema feed](https://opendocs.cc/schema-feeds/agent-resources.jsonl): Structured data, advertised from /robots.txt
+
+## Pages
+
+- [Homepage](https://opendocs.cc): Product overview
+- [Pricing](https://opendocs.cc/pricing): Free, Pro and Team
+- [FAQ](https://opendocs.cc/faq): Plans, limits and publishing
+- [MCP server](https://opendocs.cc/mcp): Connect OpenDocs to Claude, ChatGPT and other AI apps
+
+## Optional
+
+- [Privacy Policy](https://opendocs.cc/privacy)
+- [Terms & Conditions](https://opendocs.cc/terms)
+- [Refund Policy](https://opendocs.cc/refund-policy)

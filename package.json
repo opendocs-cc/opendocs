@@ -1,0 +1,44 @@
+{
+  "name": "opendocs",
+  "version": "0.1.0",
+  "private": true,
+  "license": "FSL-1.1-MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/opendocs-cc/opendocs.git"
+  },
+  "bugs": "https://github.com/opendocs-cc/opendocs/issues",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "concurrently --names web,api,docs --prefix-colors blue,green,yellow \"npm run dev:web\" \"npm run dev:api\" \"npm run dev:docs\"",
+    "dev:web": "npm run dev --workspace=@opendocs/web",
+    "dev:api": "npm run dev --workspace=@opendocs/api",
+    "dev:docs": "npm run dev --workspace=@opendocs/docs",
+    "test": "npm run test --workspace=@opendocs/api",
+    "build:web": "npm run build --workspace=@opendocs/web",
+    "build:api": "npm run build --workspace=@opendocs/api",
+    "build:docs": "npm run build --workspace=@opendocs/docs",
+    "prod": "npm run build:web && rm -rf apps/web/.next/standalone/apps/web/public && cp -r apps/web/public apps/web/.next/standalone/apps/web/public && cp -r apps/web/.next/static apps/web/.next/standalone/apps/web/.next/static && npm run build:docs && concurrently --names web,api,docs --prefix-colors blue,green,yellow \"node --env-file=apps/web/.env.local apps/web/.next/standalone/apps/web/server.js\" \"NODE_ENV=production npm run start --workspace=@opendocs/api\" \"npm run serve --workspace=@opendocs/docs\"",
+    "db:push": "drizzle-kit push",
+    "sync:skill": "node scripts/sync-skill.mjs"
+  },
+  "overrides": {
+    "webpackbar": "7.0.0",
+    "tinypool": "^2.2.0",
+    "serialize-javascript": "^7.1.4",
+    "websocket-driver": "^0.7.5",
+    "postcss": "^8.5.31"
+  },
+  "devDependencies": {
+    "concurrently": "^9.2.1",
+    "drizzle-kit": "^0.31.11",
+    "typescript": "^5.9.2",
+    "webpackbar": "7.0.0"
+  },
+  "dependencies": {
+    "lightningcss": "^1.32.0"
+  }
+}

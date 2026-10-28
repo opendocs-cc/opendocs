@@ -1,0 +1,869 @@
+/* Highlight wrap that the layer applies to commented text.
+   Medium-style: an unobtrusive dotted underline by default, with the
+   tinted background only appearing on hover (or when the matching
+   thread is the open one). Keeps the article body clean for reading
+   while still signalling that the passage carries a discussion.
+
+   Important: a single highlight that crosses inline formatting (e.g.
+   `text <strong>bold</strong> text`) is rendered as N adjacent spans,
+   one per text node, because `Range.surroundContents` can't legally
+   wrap content split across element boundaries. We therefore set
+   padding/border-radius to zero so adjacent spans visually merge
+   into one continuous highlight instead of looking like three
+   discrete pills with rounded corners and gaps between them. */
+.od-comment-highlight {
+  background: transparent;
+  border-bottom: 1px dotted rgba(107, 63, 201, 0.55);
+  cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease;
+  border-radius: 0;
+  padding: 0;
+}
+
+.od-comment-highlight:hover,
+.od-comment-highlight.is-hovered {
+  background: rgba(107, 63, 201, 0.14);
+  border-bottom-style: solid;
+  border-bottom-color: rgba(107, 63, 201, 0.7);
+}
+
+.od-comment-highlight.is-active {
+  background: rgba(107, 63, 201, 0.22);
+  border-bottom-style: solid;
+  border-bottom-color: rgba(107, 63, 201, 0.85);
+}
+
+.od-comment-highlight.is-resolved {
+  border-bottom-color: rgba(160, 160, 170, 0.5);
+}
+
+.od-comment-highlight.is-resolved:hover {
+  background: rgba(160, 160, 170, 0.12);
+  border-bottom-color: rgba(160, 160, 170, 0.7);
+}
+
+/* Floating "Comment" bubble that appears above a fresh selection. */
+.od-comment-bubble {
+  position: fixed;
+  z-index: 70;
+  transform: translate(-50%, -100%);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.4rem 0.7rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #fff;
+  background: #27272a;
+  border: 1px solid #3f3f46;
+  border-radius: 999px;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.od-comment-bubble[data-placement="below"] {
+  transform: translate(-50%, 0);
+}
+
+.od-comment-bubble:hover {
+  background: #18181b;
+}
+
+/* Slide-in side panel docked to the right edge. Word-style: stays
+   above the article (z-index above the floating header) and scrolls
+   independently. */
+.od-comment-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 26rem;
+  max-width: 92vw;
+  z-index: 80;
+  background: #fff;
+  border-left: 1px solid #e4e4e7;
+  box-shadow: -16px 0 40px rgba(24, 24, 27, 0.08);
+  display: flex;
+  flex-direction: column;
+  animation: od-comment-slide-in 0.18s ease-out;
+}
+
+/* Mirror animation when the viewer dismisses the panel. The wrapper
+   stays mounted for the duration declared in `closePanel()`
+   (~180ms) and then unmounts; keep the timer and this animation in
+   sync so the panel finishes sliding off-screen exactly when React
+   pulls it from the DOM. `forwards` pins the closed transform so the
+   panel doesn't visibly snap back during the unmount frame. */
+.od-comment-panel.is-closing {
+  animation: od-comment-slide-out 0.18s ease-in forwards;
+}
+
+@keyframes od-comment-slide-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes od-comment-slide-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.od-comment-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.85rem 1rem;
+  border-bottom: 1px solid #f4f4f5;
+}
+
+.od-comment-panel__title {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  font-size: 0.95rem;
+  color: #18181b;
+}
+
+.od-comment-panel__count {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #71717a;
+}
+
+.od-comment-panel__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  height: 2rem;
+  padding: 0 0.5rem;
+  border-radius: 0.5rem;
+  border: none;
+  background: transparent;
+  color: #52525b;
+  cursor: pointer;
+}
+
+.od-comment-panel__close:hover {
+  background: #f4f4f5;
+  color: #18181b;
+}
+
+/* Tiny "Esc" badge next to the close X — gives readers a hint that
+   they can dismiss the panel from the keyboard without having to hunt
+   for the shortcut. Hidden on narrow viewports where the panel takes
+   over the full width and the badge would crowd the title. */
+.od-comment-panel__close-hint {
+  display: inline-flex;
+  align-items: center;
+  font-family: inherit;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: #71717a;
+  background: #f4f4f5;
+  border: 1px solid #e4e4e7;
+  border-radius: 0.3rem;
+  padding: 0.18rem 0.4rem;
+}
+
+@media (max-width: 480px) {
+  .od-comment-panel__close-hint {
+    display: none;
+  }
+}
+
+.od-comment-panel__error {
+  padding: 0.6rem 1rem;
+  background: #fef2f2;
+  color: #b91c1c;
+  font-size: 0.8rem;
+  border-bottom: 1px solid #fecaca;
+}
+
+.od-comment-panel__body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  /* Hide the native scrollbar — we still scroll, the bar just isn't
+     painted. The page scroll is locked while the panel is open, so
+     showing the panel's bar while the page bar disappears looks
+     jarring; an invisible scrollbar keeps the panel feeling like a
+     clean overlay. */
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  /* `contain` prevents the wheel chain from bubbling to the page when
+     the viewer reaches the top or bottom of the panel's own scroll.
+     Without this, the article behind the panel "rubber bands" /
+     scrolls a few pixels every time the panel hits a boundary, which
+     reads like the page is leaking past our scroll lock. */
+  overscroll-behavior: contain;
+}
+
+.od-comment-panel__body::-webkit-scrollbar {
+  display: none;
+}
+
+.od-comment-panel__empty {
+  margin: 1rem 0;
+  font-size: 0.85rem;
+  color: #71717a;
+  text-align: center;
+}
+
+/* Comment card — both the draft composer and existing threads share
+   this skeleton so the panel looks consistent. */
+.od-comment-card {
+  border: 1px solid #e4e4e7;
+  border-radius: 0.85rem;
+  padding: 0.7rem;
+  background: #fff;
+  cursor: pointer;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
+}
+
+.od-comment-card:hover {
+  border-color: #d4d4d8;
+}
+
+.od-comment-card.is-active {
+  border-color: #6b3fc9;
+  box-shadow: 0 0 0 2px rgba(107, 63, 201, 0.12);
+}
+
+.od-comment-card.is-orphan {
+  border-style: dashed;
+  background: #fafaf9;
+}
+
+.od-comment-card.is-resolved {
+  background: #fafafa;
+  opacity: 0.85;
+}
+
+.od-comment-card--draft {
+  cursor: default;
+  border-color: #d4d4d8;
+  background: #fafafa;
+}
+
+.od-comment-card__quote {
+  margin: 0 0 0.55rem;
+  padding: 0.4rem 0.6rem;
+  font-style: italic;
+  color: #52525b;
+  font-size: 0.76rem;
+  line-height: 1.55;
+  background: #f8f4ff;
+  border-left: 2px solid #6b3fc9;
+  border-radius: 0 0.45rem 0.45rem 0;
+  max-height: 6.2rem;
+  overflow: hidden;
+  position: relative;
+}
+
+.od-comment-card__quote::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1.4rem;
+  background: linear-gradient(to bottom, rgba(248, 244, 255, 0), #f8f4ff);
+  pointer-events: none;
+}
+
+.od-comment-card__textarea {
+  width: 100%;
+  min-height: 2.4rem;
+  resize: vertical;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid #d4d4d8;
+  border-radius: 0.45rem;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: #18181b;
+  background: #fff;
+}
+
+.od-comment-card__textarea:focus {
+  outline: none;
+  border-color: #6b3fc9;
+  box-shadow: 0 0 0 3px rgba(107, 63, 201, 0.15);
+}
+
+.od-comment-card__actions {
+  margin-top: 0.55rem;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.od-comment-card__hint {
+  margin-right: auto;
+  font-size: 0.72rem;
+  color: #a1a1aa;
+}
+
+.od-comment-card__reply {
+  margin-top: 0.6rem;
+  display: flex;
+  gap: 0.45rem;
+  align-items: flex-start;
+}
+
+.od-comment-card__reply .od-comment-card__textarea {
+  flex: 1;
+  min-height: 2.25rem;
+}
+
+.od-comment-card__replies {
+  margin-top: 0.6rem;
+  margin-left: 0.82rem;
+  padding-left: 0.85rem;
+  border-left: 1px solid #ece7fb;
+}
+
+.od-comment-doc-composer {
+  width: 100%;
+  border: 1px solid #e4e4e7;
+  border-radius: 0.85rem;
+  background: #fff;
+  padding: 0.65rem 0.75rem;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  column-gap: 0.6rem;
+  row-gap: 0.1rem;
+  align-items: center;
+  text-align: left;
+  color: #52525b;
+  cursor: pointer;
+  transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+}
+
+.od-comment-doc-composer:hover {
+  border-color: #d6cdf5;
+  background: #fbfaff;
+  box-shadow: 0 1px 0 rgba(107, 63, 201, 0.05);
+}
+
+.od-comment-doc-composer__icon {
+  grid-row: span 2;
+  width: 1.9rem;
+  height: 1.9rem;
+  border-radius: 999px;
+  background: #f8f4ff;
+  color: #6b3fc9;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.od-comment-doc-composer__text {
+  min-width: 0;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: #27272a;
+}
+
+.od-comment-doc-composer__hint {
+  min-width: 0;
+  font-size: 0.72rem;
+  color: #a1a1aa;
+}
+
+/* Buttons inside the panel. */
+.od-comment-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.85rem;
+  background: #6b3fc9;
+  color: #fff;
+  border: none;
+  border-radius: 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.12s ease;
+}
+
+.od-comment-btn-primary:hover:not(:disabled) {
+  background: #5a32b0;
+}
+
+.od-comment-btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.od-comment-btn-primary--small {
+  padding: 0.35rem 0.7rem;
+  font-size: 0.75rem;
+  gap: 0.4rem;
+}
+
+/* Tiny shortcut hint baked into the Comment / Reply buttons. The
+   chord (⌘↵ or Ctrl+↵) is wired into each textarea's onKeyDown, so
+   surfacing the label inside the button itself doubles as both a
+   discovery affordance and an at-a-glance reminder of what pressing
+   the button is going to do. Translucent white pill on the brand
+   purple keeps it legible without competing with the button label. */
+.od-comment-btn-primary__hint {
+  display: inline-flex;
+  align-items: center;
+  font-family: inherit;
+  font-size: 0.65rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: 0.3rem;
+  padding: 0.16rem 0.36rem;
+}
+
+.od-comment-btn-primary--small .od-comment-btn-primary__hint {
+  font-size: 0.6rem;
+  padding: 0.14rem 0.3rem;
+}
+
+@media (max-width: 480px) {
+  .od-comment-btn-primary__hint {
+    display: none;
+  }
+}
+
+.od-comment-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.85rem;
+  background: transparent;
+  color: #52525b;
+  border: 1px solid #e4e4e7;
+  border-radius: 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.od-comment-btn-ghost:hover:not(:disabled) {
+  background: #f4f4f5;
+}
+
+.od-comment-btn-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Comment row — author avatar + meta + body. */
+.od-comment-row {
+  display: flex;
+  gap: 0.55rem;
+  margin-top: 0.55rem;
+}
+
+.od-comment-row.is-indent {
+  margin-top: 0.6rem;
+}
+
+.od-comment-row__avatar {
+  flex: none;
+  width: 1.65rem;
+  height: 1.65rem;
+  border-radius: 50%;
+  background: #f4f4f5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #52525b;
+  overflow: hidden;
+}
+
+.od-comment-row__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.od-comment-row__body {
+  flex: 1;
+  min-width: 0;
+}
+
+.od-comment-row__meta {
+  display: flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  color: #71717a;
+}
+
+.od-comment-row__meta strong {
+  color: #18181b;
+  font-weight: 600;
+  font-size: 0.82rem;
+}
+
+.od-comment-row__text {
+  margin: 0.15rem 0 0;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  color: #27272a;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.od-comment-row__actions {
+  margin-top: 0.35rem;
+  display: flex;
+  gap: 0.5rem;
+  opacity: 0;
+  transform: translateY(-1px);
+  transition: opacity 0.12s ease, transform 0.12s ease;
+}
+
+.od-comment-card:hover .od-comment-row__actions,
+.od-comment-card:focus-within .od-comment-row__actions,
+.od-comment-card.is-active .od-comment-row__actions {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.od-comment-row__action {
+  background: none;
+  border: none;
+  padding: 0;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #71717a;
+  cursor: pointer;
+}
+
+.od-comment-row__action:hover {
+  color: #6b3fc9;
+}
+
+.od-comment-row__action:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.od-comment-row__action:disabled:hover {
+  color: #71717a;
+}
+
+.od-comment-row__action--danger:hover {
+  color: #dc2626;
+}
+
+/* Inline confirm-delete pair. Replaces the native browser
+   `confirm()` dialog so the destructive flow stays in-panel and
+   matches the rest of the comment chrome. The "Confirm" sits on a
+   solid red so it reads as the destructive action even at a glance,
+   and "Cancel" sits next to it as a quiet ghost button. */
+.od-comment-row__confirm {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.od-comment-row__confirm-label {
+  font-size: 0.72rem;
+  color: #991b1b;
+  font-weight: 600;
+}
+
+.od-comment-row__confirm-btn {
+  border: none;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 0.35rem;
+  cursor: pointer;
+  background: #dc2626;
+  color: #fff;
+}
+
+.od-comment-row__confirm-btn:disabled,
+.od-comment-row__cancel-btn:disabled {
+  cursor: default;
+  opacity: 0.6;
+}
+
+.od-comment-row__confirm-btn:hover {
+  background: #b91c1c;
+}
+
+.od-comment-row__cancel-btn {
+  border: 1px solid #e4e4e7;
+  background: #fff;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  border-radius: 0.35rem;
+  color: #52525b;
+  cursor: pointer;
+}
+
+.od-comment-row__cancel-btn:hover {
+  background: #f4f4f5;
+}
+
+/* Resolved-thread accordion. */
+.od-comment-resolved {
+  margin-top: 0.5rem;
+  border-top: 1px dashed #e4e4e7;
+  padding-top: 0.85rem;
+}
+
+.od-comment-resolved > summary {
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #71717a;
+  margin-bottom: 0.6rem;
+}
+
+.od-comment-resolved > summary:hover {
+  color: #18181b;
+}
+
+@media (max-width: 640px) {
+  .od-comment-panel {
+    width: 100vw;
+    max-width: 100vw;
+  }
+}
+
+/* --- Dark mode -----------------------------------------------------------
+   Comments are plain CSS because the layer wraps server-rendered article
+   HTML. Keep the chrome low-contrast and let the purple active state carry
+   the interaction signal.
+*/
+
+.dark .od-comment-highlight {
+  border-bottom-color: rgba(196, 181, 253, 0.55);
+}
+
+.dark .od-comment-highlight:hover,
+.dark .od-comment-highlight.is-hovered {
+  background: rgba(167, 139, 250, 0.16);
+  border-bottom-color: rgba(196, 181, 253, 0.78);
+}
+
+.dark .od-comment-highlight.is-active {
+  background: rgba(167, 139, 250, 0.24);
+  border-bottom-color: rgba(221, 214, 254, 0.92);
+}
+
+.dark .od-comment-highlight.is-resolved {
+  border-bottom-color: rgba(113, 113, 122, 0.7);
+}
+
+.dark .od-comment-highlight.is-resolved:hover {
+  background: rgba(113, 113, 122, 0.18);
+  border-bottom-color: rgba(161, 161, 170, 0.8);
+}
+
+.dark .od-comment-bubble {
+  color: #18181b;
+  background: #f4f4f5;
+  border-color: #ffffff;
+  box-shadow: 0 14px 36px rgba(0, 0, 0, 0.45);
+}
+
+.dark .od-comment-bubble:hover {
+  background: #e4e4e7;
+}
+
+.dark .od-comment-panel {
+  background: #09090b;
+  border-left-color: #27272a;
+  box-shadow: -18px 0 44px rgba(0, 0, 0, 0.48);
+}
+
+.dark .od-comment-panel__header {
+  border-bottom-color: #27272a;
+}
+
+.dark .od-comment-panel__title,
+.dark .od-comment-row__meta strong {
+  color: #f4f4f5;
+}
+
+.dark .od-comment-panel__count,
+.dark .od-comment-panel__empty,
+.dark .od-comment-card__hint,
+.dark .od-comment-doc-composer__hint,
+.dark .od-comment-row__meta,
+.dark .od-comment-row__action,
+.dark .od-comment-resolved > summary {
+  color: #a1a1aa;
+}
+
+.dark .od-comment-panel__close {
+  color: #a1a1aa;
+}
+
+.dark .od-comment-panel__close:hover {
+  background: #18181b;
+  color: #f4f4f5;
+}
+
+.dark .od-comment-panel__close-hint {
+  color: #a1a1aa;
+  background: #18181b;
+  border-color: #27272a;
+}
+
+.dark .od-comment-panel__error {
+  color: #fca5a5;
+  background: rgba(127, 29, 29, 0.28);
+  border-bottom-color: rgba(248, 113, 113, 0.25);
+}
+
+.dark .od-comment-card,
+.dark .od-comment-doc-composer {
+  background: #18181b;
+  border-color: #27272a;
+}
+
+.dark .od-comment-card:hover,
+.dark .od-comment-doc-composer:hover {
+  border-color: #3f3f46;
+  background: #1f1f24;
+}
+
+.dark .od-comment-card.is-active {
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.2);
+}
+
+.dark .od-comment-card.is-orphan,
+.dark .od-comment-card.is-resolved,
+.dark .od-comment-card--draft {
+  background: #111113;
+}
+
+.dark .od-comment-card__quote {
+  color: #d4d4d8;
+  background: rgba(167, 139, 250, 0.12);
+  border-left-color: #a78bfa;
+}
+
+.dark .od-comment-card__quote::after {
+  background: linear-gradient(to bottom, rgba(27, 22, 39, 0), #1b1627);
+}
+
+.dark .od-comment-card__textarea {
+  color: #f4f4f5;
+  background: #09090b;
+  border-color: #3f3f46;
+}
+
+.dark .od-comment-card__textarea::placeholder {
+  color: #71717a;
+}
+
+.dark .od-comment-card__textarea:focus {
+  border-color: #a78bfa;
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.18);
+}
+
+.dark .od-comment-card__replies {
+  border-left-color: rgba(167, 139, 250, 0.28);
+}
+
+.dark .od-comment-doc-composer__icon {
+  color: #c4b5fd;
+  background: rgba(167, 139, 250, 0.14);
+}
+
+.dark .od-comment-doc-composer__text,
+.dark .od-comment-row__text {
+  color: #e4e4e7;
+}
+
+.dark .od-comment-btn-primary {
+  color: #18181b;
+  background: #c4b5fd;
+}
+
+.dark .od-comment-btn-primary:hover:not(:disabled) {
+  background: #ddd6fe;
+}
+
+.dark .od-comment-btn-primary__hint {
+  color: rgba(24, 24, 27, 0.9);
+  background: rgba(24, 24, 27, 0.1);
+  border-color: rgba(24, 24, 27, 0.18);
+}
+
+.dark .od-comment-btn-ghost,
+.dark .od-comment-row__cancel-btn {
+  color: #d4d4d8;
+  background: transparent;
+  border-color: #3f3f46;
+}
+
+.dark .od-comment-btn-ghost:hover:not(:disabled),
+.dark .od-comment-row__cancel-btn:hover {
+  background: #27272a;
+}
+
+.dark .od-comment-row__avatar {
+  color: #d4d4d8;
+  background: #27272a;
+}
+
+.dark .od-comment-row__action:hover {
+  color: #c4b5fd;
+}
+
+.dark .od-comment-row__action:disabled:hover {
+  color: #a1a1aa;
+}
+
+.dark .od-comment-row__action--danger:hover {
+  color: #f87171;
+}
+
+.dark .od-comment-row__confirm-label {
+  color: #fca5a5;
+}
+
+.dark .od-comment-row__confirm-btn {
+  background: #ef4444;
+}
+
+.dark .od-comment-row__confirm-btn:hover {
+  background: #f87171;
+}
+
+.dark .od-comment-resolved {
+  border-top-color: #3f3f46;
+}
+
+.dark .od-comment-resolved > summary:hover {
+  color: #f4f4f5;
+}

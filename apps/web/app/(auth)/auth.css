@@ -1,0 +1,165 @@
+/* ---- Auth Terminal ---- */
+
+.auth-terminal {
+  width: 520px;
+  background: #1a1a1a;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow:
+    0 25px 60px -12px rgba(0, 0, 0, 0.3),
+    0 0 0 1px rgba(255, 255, 255, 0.06);
+  transform: rotate(-1deg);
+}
+
+.auth-terminal__bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 16px;
+  background: #252525;
+}
+
+.auth-terminal__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.auth-terminal__dot--red {
+  background: #ef4444;
+}
+.auth-terminal__dot--yellow {
+  background: #eab308;
+}
+.auth-terminal__dot--green {
+  background: #22c55e;
+}
+
+.auth-terminal__title {
+  color: #525252;
+  font-size: 11px;
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  margin-left: 8px;
+}
+
+.auth-terminal__body {
+  padding: 20px 24px 28px;
+  font-family: var(--font-mono), "JetBrains Mono", monospace;
+  font-size: 12.5px;
+  line-height: 1.75;
+  min-height: 320px;
+}
+
+.auth-terminal__line {
+  white-space: nowrap;
+}
+
+.auth-terminal__line--cmd {
+  color: #e4e4e7;
+}
+
+.auth-terminal__line--success {
+  color: #6b3fc9;
+}
+
+.auth-terminal__line--comment {
+  color: #525252;
+  font-style: italic;
+}
+
+.auth-terminal__line--muted {
+  color: #52525b;
+}
+
+.auth-terminal__line--blank {
+  height: 6px;
+}
+
+.auth-terminal__arrow {
+  color: #4ade80;
+}
+
+.auth-terminal__check {
+  color: #6b3fc9;
+}
+
+.auth-terminal__cmd-text {
+  color: #f4f4f5;
+}
+
+.auth-terminal__cursor {
+  display: inline-block;
+  width: 7px;
+  height: 14px;
+  background: #f4f4f5;
+  margin-left: 1px;
+  vertical-align: text-bottom;
+  animation: auth-cursor-blink 0.8s steps(1) infinite;
+}
+
+@keyframes auth-cursor-blink {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
+}
+
+.auth-terminal__fade-in {
+  animation: auth-line-in 0.3s ease both;
+}
+
+@keyframes auth-line-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ---- Auth right panel ---- */
+
+.auth-visual {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2rem;
+  height: 100%;
+  padding: 3rem;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Subtle radial glow behind the terminal */
+.auth-visual::before {
+  content: "";
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(107, 63, 201, 0.08) 0%, transparent 70%);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.auth-visual__tagline {
+  color: #a1a1aa;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-align: center;
+  transform: rotate(-1deg);
+}
+
+.auth-visual__tagline span {
+  color: #6b3fc9;
+  font-weight: 600;
+}

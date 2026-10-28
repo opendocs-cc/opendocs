@@ -1,0 +1,641 @@
+/* OpenDocs article typography: the design layer for rendered Markdown.
+ *
+ * Loaded after the MkDocs Material, Bear and opendocs-mkdocs.css sheets.
+ * It styles everything OpenDocs' Markdown dialect produces (see
+ * packages/shared/src/markdown/syntax.ts) and keeps the web view in step
+ * with the PDF/DOCX exports: same alert colors, same figure captions, same
+ * list markers, same table rhythm. */
+
+.od-mkdocs {
+  --od-text: #3f3f46;
+  --od-heading: #18181b;
+  --od-muted: #71717a;
+  --od-accent: #7f56d9;
+  --od-accent-soft: #e9d7fe;
+  --od-border: #e4e4e7;
+  --od-surface: #f8f8fa;
+  --od-mark: #fdefb2;
+  --od-note: #0969da;
+  --od-note-bg: #f0f6ff;
+  --od-tip: #1a7f37;
+  --od-tip-bg: #eff8f1;
+  --od-important: #8250df;
+  --od-important-bg: #f6f1ff;
+  --od-warning: #9a6700;
+  --od-warning-bg: #fff8e5;
+  --od-caution: #cf222e;
+  --od-caution-bg: #fff1f0;
+}
+
+.dark .od-mkdocs {
+  --od-text: #d4d4d8;
+  --od-heading: #f4f4f5;
+  --od-muted: #a1a1aa;
+  --od-accent: #a78bfa;
+  --od-accent-soft: #4c3a7a;
+  --od-border: #27272a;
+  --od-surface: #121215;
+  --od-mark: #5c4a12;
+  --od-note: #58a6ff;
+  --od-note-bg: rgba(56, 139, 253, 0.1);
+  --od-tip: #3fb950;
+  --od-tip-bg: rgba(46, 160, 67, 0.1);
+  --od-important: #a371f7;
+  --od-important-bg: rgba(163, 113, 247, 0.1);
+  --od-warning: #d29922;
+  --od-warning-bg: rgba(187, 128, 9, 0.12);
+  --od-caution: #f85149;
+  --od-caution-bg: rgba(248, 81, 73, 0.1);
+}
+
+/* --- Title and metadata ---
+   The page shell prints the title, so the Markdown's own `# Title` is
+   hidden; the metadata line under it reads as a quiet byline. */
+
+.od-mkdocs .md-typeset h1.od-doc-title {
+  display: none;
+}
+
+.od-mkdocs .md-typeset p.od-meta {
+  color: var(--od-muted);
+  font-size: 0.8em;
+  letter-spacing: 0.01em;
+  margin: 0 0 1.75em;
+  padding-bottom: 1.1em;
+  border-bottom: 1px solid var(--od-border);
+}
+
+.od-mkdocs .md-typeset p.od-meta + p.od-meta {
+  margin-top: -1.75em;
+  padding-top: 0.4em;
+}
+
+.od-mkdocs .md-typeset .od-meta-sep {
+  margin: 0 0.6em;
+  opacity: 0.6;
+}
+
+/* --- Headings: a clear ladder from H1 to H6 --- */
+
+.od-mkdocs .md-typeset h1,
+.od-mkdocs .md-typeset h2,
+.od-mkdocs .md-typeset h3,
+.od-mkdocs .md-typeset h4 {
+  color: var(--od-heading);
+}
+
+.od-mkdocs .md-typeset h5 {
+  color: var(--od-accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  margin: 1.4rem 0 0.4rem;
+  text-transform: uppercase;
+}
+
+.od-mkdocs .md-typeset h6 {
+  color: var(--od-muted);
+  font-size: 0.9rem;
+  font-style: italic;
+  font-weight: 500;
+  letter-spacing: 0;
+  margin: 1.25rem 0 0.35rem;
+  text-transform: none;
+}
+
+/* --- Paragraph-level details --- */
+
+.od-mkdocs .md-typeset strong {
+  color: var(--od-heading);
+  font-weight: 650;
+}
+
+.od-mkdocs .md-typeset a:not([title="Permanent link"]) {
+  color: var(--od-accent);
+  text-decoration: underline;
+  text-decoration-color: var(--od-accent-soft);
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+  transition: text-decoration-color 0.15s;
+}
+
+.od-mkdocs .md-typeset a:not([title="Permanent link"]):hover {
+  text-decoration-color: currentColor;
+}
+
+.od-mkdocs .md-typeset mark {
+  background: var(--od-mark);
+  border-radius: 0.2em;
+  color: inherit;
+  padding: 0.05em 0.2em;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+}
+
+.od-mkdocs .md-typeset kbd {
+  display: inline-block;
+  min-width: 1.5em;
+  padding: 0.1em 0.45em;
+  border: 1px solid var(--od-border);
+  border-bottom-width: 2px;
+  border-radius: 0.35em;
+  background: var(--od-surface);
+  box-shadow: none;
+  color: var(--od-heading);
+  font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.75em;
+  line-height: 1.4;
+  text-align: center;
+  vertical-align: 0.1em;
+}
+
+.od-mkdocs .md-typeset abbr[title] {
+  cursor: help;
+  text-decoration: underline dotted;
+  text-decoration-color: var(--od-muted);
+  text-underline-offset: 0.2em;
+}
+
+.od-mkdocs .md-typeset sub,
+.od-mkdocs .md-typeset sup {
+  font-size: 0.72em;
+  line-height: 0;
+}
+
+.od-mkdocs .md-typeset small {
+  font-size: 0.85em;
+}
+
+.od-mkdocs .md-typeset hr {
+  border: 0;
+  border-top: 1px solid var(--od-border);
+  margin: 2.5em 0;
+}
+
+/* --- Lists ---
+   Nested ordered lists step through 1. → a. → i., as in the exports. */
+
+.od-mkdocs .md-typeset ol ol {
+  list-style-type: lower-alpha;
+}
+
+.od-mkdocs .md-typeset ol ol ol {
+  list-style-type: lower-roman;
+}
+
+.od-mkdocs .md-typeset ul ul ul {
+  list-style-type: square;
+}
+
+.od-mkdocs .md-typeset li > ul,
+.od-mkdocs .md-typeset li > ol {
+  margin-top: 0.35em;
+  margin-bottom: 0.35em;
+}
+
+.od-mkdocs .md-typeset li + li {
+  margin-top: 0.3em;
+}
+
+.od-mkdocs .md-typeset ul.contains-task-list,
+.od-mkdocs .md-typeset ol.contains-task-list {
+  list-style: none;
+  padding-left: 0.25em;
+}
+
+.od-mkdocs .md-typeset .task-list-item {
+  list-style: none;
+  padding-left: 0;
+}
+
+.od-mkdocs .md-typeset .task-list-item::marker {
+  content: none;
+}
+
+.od-mkdocs .md-typeset .task-list-item input[type="checkbox"] {
+  margin: 0 0.6em 0.2em -0.1em;
+  vertical-align: middle;
+  width: 0.95em;
+  height: 0.95em;
+}
+
+.od-mkdocs .md-typeset .task-list-item .contains-task-list {
+  padding-left: 1.6em;
+}
+
+/* --- Quotes --- */
+
+.od-mkdocs .md-typeset blockquote {
+  border-left: 3px solid var(--od-accent-soft);
+  color: var(--od-text);
+  margin: 1.5em 0;
+  padding: 0.1em 0 0.1em 1.1em;
+}
+
+.od-mkdocs .md-typeset blockquote blockquote {
+  margin: 0.75em 0;
+}
+
+.od-mkdocs .md-typeset blockquote > :first-child {
+  margin-top: 0;
+}
+
+.od-mkdocs .md-typeset blockquote > :last-child {
+  margin-bottom: 0;
+}
+
+/* --- Alerts: > [!NOTE] ... > [!CAUTION] --- */
+
+.od-mkdocs .md-typeset .markdown-alert {
+  --od-alert: var(--od-note);
+  --od-alert-bg: var(--od-note-bg);
+  --od-alert-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6.4' fill='none' stroke='black' stroke-width='1.5'/%3E%3Crect x='7.25' y='7' width='1.5' height='4.6' rx='.75'/%3E%3Ccircle cx='8' cy='4.8' r='.95'/%3E%3C/svg%3E");
+  background: var(--od-alert-bg);
+  border-left: 4px solid var(--od-alert);
+  border-radius: 0 0.6em 0.6em 0;
+  margin: 1.5em 0;
+  padding: 0.85em 1.15em 0.9em;
+}
+
+.od-mkdocs .md-typeset .markdown-alert-tip {
+  --od-alert: var(--od-tip);
+  --od-alert-bg: var(--od-tip-bg);
+  --od-alert-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1.6a4.6 4.6 0 0 0-2.7 8.3c.45.33.7.78.7 1.25v.85h4v-.85c0-.47.25-.92.7-1.25A4.6 4.6 0 0 0 8 1.6z' fill='none' stroke='black' stroke-width='1.5' stroke-linejoin='round'/%3E%3Crect x='6' y='13.3' width='4' height='1.5' rx='.75'/%3E%3C/svg%3E");
+}
+
+.od-mkdocs .md-typeset .markdown-alert-important {
+  --od-alert: var(--od-important);
+  --od-alert-bg: var(--od-important-bg);
+  --od-alert-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M2.5 2.5h11v8.2H7.6l-3 2.8v-2.8H2.5z' fill='none' stroke='black' stroke-width='1.5' stroke-linejoin='round'/%3E%3Crect x='7.25' y='4.3' width='1.5' height='3.4' rx='.75'/%3E%3Ccircle cx='8' cy='9' r='.9'/%3E%3C/svg%3E");
+}
+
+.od-mkdocs .md-typeset .markdown-alert-warning {
+  --od-alert: var(--od-warning);
+  --od-alert-bg: var(--od-warning-bg);
+  --od-alert-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M8 1.9 14.6 13.6H1.4z' fill='none' stroke='black' stroke-width='1.5' stroke-linejoin='round'/%3E%3Crect x='7.25' y='5.6' width='1.5' height='4' rx='.75'/%3E%3Ccircle cx='8' cy='11.5' r='.9'/%3E%3C/svg%3E");
+}
+
+.od-mkdocs .md-typeset .markdown-alert-caution {
+  --od-alert: var(--od-caution);
+  --od-alert-bg: var(--od-caution-bg);
+  --od-alert-icon: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M5.2 1.75h5.6l3.45 3.45v5.6l-3.45 3.45H5.2L1.75 10.8V5.2z' fill='none' stroke='black' stroke-width='1.5' stroke-linejoin='round'/%3E%3Crect x='7.25' y='4.4' width='1.5' height='4.6' rx='.75'/%3E%3Ccircle cx='8' cy='11' r='.9'/%3E%3C/svg%3E");
+}
+
+.od-mkdocs .md-typeset .markdown-alert > :last-child {
+  margin-bottom: 0;
+}
+
+.od-mkdocs .md-typeset .markdown-alert-title {
+  align-items: center;
+  color: var(--od-alert);
+  display: flex;
+  font-size: 0.85em;
+  font-weight: 650;
+  gap: 0.5em;
+  letter-spacing: 0.01em;
+  margin: 0 0 0.35em;
+}
+
+.od-mkdocs .md-typeset .markdown-alert-title::before {
+  background: currentColor;
+  content: "";
+  flex: none;
+  height: 1.1em;
+  width: 1.1em;
+  -webkit-mask: var(--od-alert-icon) center / contain no-repeat;
+  mask: var(--od-alert-icon) center / contain no-repeat;
+}
+
+/* --- Figures ---
+   An image on its own line is a figure; its title or the italic line
+   under it is the caption (the exports caption it the same way). */
+
+.od-mkdocs .md-typeset figure.od-figure {
+  display: block;
+  margin: 2em auto;
+  max-width: 100%;
+  text-align: center;
+  width: auto;
+}
+
+.od-mkdocs .md-typeset figure.od-figure img {
+  display: inline-block;
+  height: auto;
+  max-height: 80vh;
+  max-width: 100%;
+  vertical-align: bottom;
+}
+
+.od-mkdocs .md-typeset figure.od-figure-row {
+  align-items: flex-end;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+  justify-content: center;
+}
+
+.od-mkdocs .md-typeset figure.od-figure-row figcaption {
+  flex-basis: 100%;
+}
+
+.od-mkdocs .md-typeset figure.od-figure figcaption {
+  color: var(--od-muted);
+  font-size: 0.78em;
+  line-height: 1.5;
+  margin: 0.85em auto 0;
+  max-width: 34em;
+}
+
+.od-mkdocs .md-typeset figure.od-figure figcaption em {
+  font-style: normal;
+}
+
+.od-mkdocs .md-typeset p img {
+  vertical-align: middle;
+}
+
+/* --- Tables --- */
+
+.od-mkdocs .md-typeset table:not([class]) {
+  border: 1px solid var(--od-border);
+  border-collapse: separate;
+  border-radius: 0.6em;
+  border-spacing: 0;
+  box-shadow: none;
+  font-variant-numeric: tabular-nums;
+  margin: 1.75em 0;
+  /* Wide tables scroll sideways (MkDocs makes the table a scroll box). */
+  overflow: auto;
+}
+
+.od-mkdocs .md-typeset table:not([class]) th {
+  background: var(--od-surface);
+  border-bottom: 1px solid var(--od-border);
+  color: var(--od-heading);
+  font-weight: 650;
+  min-width: 0;
+  padding: 0.75em 1em;
+  vertical-align: bottom;
+}
+
+.od-mkdocs .md-typeset table:not([class]) td {
+  border-top: 1px solid var(--od-border);
+  padding: 0.7em 1em;
+  vertical-align: top;
+}
+
+.od-mkdocs .md-typeset table:not([class]) tbody tr:first-child td {
+  border-top: 0;
+}
+
+.od-mkdocs .md-typeset table:not([class]) tbody tr:hover {
+  background: color-mix(in srgb, var(--od-surface) 70%, transparent);
+  box-shadow: none;
+}
+
+.od-mkdocs .md-typeset table:not([class]) img {
+  vertical-align: middle;
+}
+
+/* --- Code: language label in the corner --- */
+
+.od-mkdocs .md-typeset figure[data-rehype-pretty-code-figure] {
+  position: relative;
+}
+
+.od-mkdocs .md-typeset figure[data-rehype-pretty-code-figure] pre {
+  margin: 0;
+}
+
+/* Room for the label above the first line, so it never covers code. */
+.od-mkdocs .md-typeset figure[data-rehype-pretty-code-figure] pre[data-language]:not([data-language="plaintext"]):not([data-language="text"]) {
+  padding-top: 2em;
+}
+
+.od-mkdocs .md-typeset figure[data-rehype-pretty-code-figure] pre[data-language]:not([data-language="plaintext"]):not([data-language="text"])::before {
+  color: var(--od-muted);
+  content: attr(data-language);
+  font-family: 'Inter', sans-serif;
+  font-size: 0.72em;
+  letter-spacing: 0.02em;
+  position: absolute;
+  right: 1em;
+  top: 0.6em;
+}
+
+/* --- Code: copy button, bottom-right, on hover (components/article-body.tsx) --- */
+
+.od-mkdocs .md-typeset .od-code-block {
+  position: relative;
+}
+
+.od-mkdocs .md-typeset .od-code-copy {
+  align-items: center;
+  background: var(--od-surface);
+  border: 1px solid var(--od-border);
+  border-radius: 6px;
+  bottom: 0.5em;
+  color: var(--od-muted);
+  cursor: pointer;
+  display: inline-flex;
+  height: 28px;
+  justify-content: center;
+  opacity: 0;
+  padding: 0;
+  position: absolute;
+  right: 0.5em;
+  transition: opacity 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  width: 28px;
+}
+
+.od-mkdocs .md-typeset figure[data-rehype-pretty-code-figure]:hover .od-code-copy,
+.od-mkdocs .md-typeset .od-code-block:hover .od-code-copy,
+.od-mkdocs .md-typeset .od-code-copy:focus-visible,
+.od-mkdocs .md-typeset .od-code-copy[data-copied] {
+  opacity: 1;
+}
+
+.od-mkdocs .md-typeset .od-code-copy:hover {
+  border-color: var(--od-accent-soft);
+  color: var(--od-accent);
+}
+
+.od-mkdocs .md-typeset .od-code-copy[data-copied] {
+  color: var(--od-tip);
+}
+
+/* No hover on touch screens: keep the button visible there. */
+@media (hover: none) {
+  .od-mkdocs .md-typeset .od-code-copy {
+    opacity: 1;
+  }
+}
+
+/* --- Definition lists --- */
+
+.od-mkdocs .md-typeset dl {
+  margin: 1.25em 0;
+}
+
+.od-mkdocs .md-typeset dt {
+  color: var(--od-heading);
+  font-weight: 650;
+  margin-top: 0.9em;
+}
+
+.od-mkdocs .md-typeset dd {
+  margin: 0.2em 0 0 1.5em;
+}
+
+/* --- Details --- */
+
+.od-mkdocs .md-typeset details:not([class]) {
+  border: 1px solid var(--od-border);
+  border-radius: 0.6em;
+  font-size: inherit;
+  margin: 1.5em 0;
+  padding: 0.6em 1.1em;
+}
+
+/* MkDocs draws `details` as an admonition with an icon in the summary;
+   these are plain disclosure blocks. */
+.od-mkdocs .md-typeset details:not([class]) > summary {
+  background: none;
+  border: 0;
+  color: var(--od-heading);
+  cursor: pointer;
+  font-size: 1em;
+  font-weight: 600;
+  margin: 0;
+  padding: 0.15em 1.8em 0.15em 0;
+}
+
+.od-mkdocs .md-typeset details:not([class]) > summary::before {
+  display: none;
+}
+
+.od-mkdocs .md-typeset details:not([class]) > summary::after {
+  background-color: var(--od-muted);
+  right: 0;
+  top: 0.35em;
+}
+
+.od-mkdocs .md-typeset details:not([class])[open] > summary {
+  margin-bottom: 0.5em;
+}
+
+/* --- Math --- */
+
+.od-mkdocs .md-typeset .katex {
+  font-size: 1.05em;
+}
+
+.od-mkdocs .md-typeset .katex-display {
+  margin: 1.4em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.2em 0;
+}
+
+/* MkDocs sizes every `.md-typeset svg` with `height: auto`, which flattens
+   KaTeX's stretchy radicals and arrows to nothing. */
+.od-mkdocs .md-typeset .katex svg {
+  height: inherit;
+  max-width: none;
+}
+
+/* --- Footnotes --- */
+
+.od-mkdocs .md-typeset section.footnotes {
+  border-top: 1px solid var(--od-border);
+  color: var(--od-muted);
+  font-size: 0.82em;
+  margin-top: 3em;
+  padding-top: 1.25em;
+}
+
+.od-mkdocs .md-typeset section.footnotes ol {
+  margin-top: 0;
+}
+
+.od-mkdocs .md-typeset sup a[data-footnote-ref] {
+  font-weight: 600;
+  margin-left: 0.1em;
+  text-decoration: none;
+}
+
+/* --- Signature blocks: ```signature, laid out like the PDF export --- */
+
+.od-mkdocs .md-typeset .od-signatures {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 2.25em 2.5em;
+  margin: 2em 0 1.5em;
+}
+
+@media screen and (max-width: 30em) {
+  .od-mkdocs .md-typeset .od-signatures {
+    grid-template-columns: 1fr;
+  }
+}
+
+.od-mkdocs .md-typeset .od-signature-line {
+  height: 3em;
+  border-bottom: 1px solid var(--od-muted);
+  margin-bottom: 0.6em;
+}
+
+.od-mkdocs .md-typeset .od-signature p {
+  margin: 0;
+  line-height: 1.45;
+}
+
+.od-mkdocs .md-typeset p.od-signature-name {
+  color: var(--od-heading);
+  font-weight: 600;
+}
+
+.od-mkdocs .md-typeset p.od-signature-title {
+  color: var(--od-muted);
+}
+
+.od-mkdocs .md-typeset p.od-signature-role {
+  color: var(--od-muted);
+  font-size: 0.8em;
+}
+
+.od-mkdocs .md-typeset p.od-signature-date {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75em;
+  margin-top: 1.25em;
+  color: var(--od-muted);
+  font-size: 0.8em;
+}
+
+.od-mkdocs .md-typeset .od-signature-date-line {
+  width: 10em;
+  max-width: 60%;
+  border-bottom: 1px solid var(--od-muted);
+}
+
+/* --- Page breaks: invisible on screen, real breaks in print --- */
+
+.od-mkdocs .md-typeset div.page-break {
+  break-after: page;
+  height: 0;
+  margin: 0;
+}
+
+@media print {
+  .od-mkdocs .md-typeset a[title="Permanent link"] {
+    display: none;
+  }
+
+  .od-mkdocs .md-typeset figure,
+  .od-mkdocs .md-typeset .markdown-alert,
+  .od-mkdocs .md-typeset .od-signatures,
+  .od-mkdocs .md-typeset table:not([class]) tr {
+    break-inside: avoid;
+  }
+}
