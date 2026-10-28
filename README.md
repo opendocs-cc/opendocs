@@ -7,11 +7,8 @@ Markdown your AI agents write. Publish a file and get a link your team can
 open, export it as a PDF or Word file in your brand, and publish again to
 update the same link.
 
-This repository is **source-available** under the
-[Functional Source License](https://fsl.software) (FSL-1.1-MIT): you can read
-it, run it for yourself or your team, change it and learn from it, but not
-offer it as a service that competes with opendocs.cc. Each version becomes MIT
-two years after its release. See [License](#license).
+OpenDocs is **open source under the [MIT license](LICENSE)**: use it, change
+it, host it and build on it. See [License](#license).
 
 ## Self-hosting
 
@@ -24,13 +21,16 @@ Compose:
 - **The same tools connect to it.** The CLI and the agent skill
   (`opendocs login --api-url https://api.example.com`), and Claude, ChatGPT
   and other AI apps through its own MCP server.
-- **What you need:** a server with 4 GB of memory, a domain and PostgreSQL
-  (Neon's free tier works). Email (Resend) and file storage (R2 or any
-  S3-compatible service) are optional but recommended.
+- **What you need:** a server with 4 GB of memory and a domain. PostgreSQL
+  can run on the same server, or use a hosted one such as Neon. Email
+  (Resend) and file storage (R2 or any S3-compatible service) are optional
+  but recommended.
 
 It takes some work: you set up those services and keep the server updated,
 and support is best-effort. **[SELF_HOSTING.md](SELF_HOSTING.md)** walks
-through it step by step.
+through it step by step, and it's written so an AI agent such as Claude Code
+or Codex can do the setup for you. It ends with every setting and its
+default.
 
 If you self-host OpenDocs and it saves you time, you can support its
 development on [Ko-fi](https://ko-fi.com/patrekurm).
@@ -55,7 +55,7 @@ Related repositories:
 | Repository | What | License |
 | --- | --- | --- |
 | [opendocs-cc/opendocs-cli](https://github.com/opendocs-cc/opendocs-cli) | The `opendocs` CLI and the agent skill | MIT |
-| [opendocs-cc/doc-converter](https://github.com/opendocs-cc/doc-converter) | Markdown to PDF and Word (needed for exports) | FSL-1.1-MIT |
+| [opendocs-cc/doc-converter](https://github.com/opendocs-cc/doc-converter) | Markdown to PDF and Word (needed for exports) | MIT |
 | [opendocs-cc/opendocs-extension](https://github.com/opendocs-cc/opendocs-extension) | Browser extension for ChatGPT, Claude and Gemini | MIT |
 | [opendocs-cc/skills](https://github.com/opendocs-cc/skills) | Agent skills and the Claude Code plugin | MIT |
 
@@ -114,18 +114,16 @@ Docker, so Docker needs to be running.
 
 ## Contributing
 
-Bug reports and ideas are welcome in
-[issues](https://github.com/opendocs-cc/opendocs/issues). We can't accept
-outside pull requests to this repository yet; see
-[CONTRIBUTING.md](CONTRIBUTING.md). Security issues go to
+Bug reports, ideas and pull requests are welcome; for anything bigger than a
+small fix, open an [issue](https://github.com/opendocs-cc/opendocs/issues)
+first. See [CONTRIBUTING.md](CONTRIBUTING.md). Security issues go to
 [SECURITY.md](SECURITY.md), not public issues.
 
 ## License
 
-- Everything in this repository is under [FSL-1.1-MIT](LICENSE) unless a
-  folder or file says otherwise. The documentation (`apps/docs`), the agent
-  skill files and this README are MIT. [LICENSING.md](LICENSING.md) has the
-  full map.
+- Everything in this repository is under the [MIT license](LICENSE).
+  [LICENSING.md](LICENSING.md) covers the related repositories, which are MIT
+  too.
 - "OpenDocs" and the OpenDocs logo are trademarks of Contrarian Capital ehf.
   The license doesn't cover them; see [TRADEMARKS.md](TRADEMARKS.md).
 - Third-party code and assets are listed in

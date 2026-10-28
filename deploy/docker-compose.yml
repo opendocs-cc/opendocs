@@ -133,6 +133,35 @@ services:
         max-size: "10m"
         max-file: "3"
 
+  # PostgreSQL on this server, for an instance without a hosted database
+  # (SELF_HOSTING.md). Only with COMPOSE_PROFILES=db, and then
+  # DATABASE_URL=postgresql://opendocs:<POSTGRES_PASSWORD>@db:5432/opendocs.
+  # Published on the server's own 127.0.0.1 only, for `db:push` through an
+  # SSH tunnel; the other containers reach it as db:5432.
+  db:
+    image: postgres:16-alpine
+    profiles: ["db"]
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=opendocs
+      - POSTGRES_USER=opendocs
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    ports:
+      - "127.0.0.1:5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opendocs -d opendocs"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
 volumes:
   caddy_data:
   caddy_config:
+  db_data:

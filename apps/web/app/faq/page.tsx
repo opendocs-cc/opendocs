@@ -104,7 +104,7 @@ const faqs: { group: (typeof GROUPS)[number]["id"]; q: string; a: string }[] = [
   {
     group: "basics",
     q: "Is OpenDocs open source?",
-    a: 'All of the code is public. The web app, API, MCP server and document converter are source-available under the <a href="https://fsl.software">Functional Source License</a> (FSL-1.1-MIT): you can read, change and self-host them for any purpose except running a competing service, and each release becomes MIT two years later. The CLI, the browser extension and the agent skills are open source under the MIT license. It\'s all on <a href="https://github.com/opendocs-cc">GitHub</a>.',
+    a: 'Yes. All of OpenDocs is open source under the MIT license: the web app, API, MCP server, document converter, CLI, browser extension and agent skills. It\'s on <a href="https://github.com/opendocs-cc">GitHub</a>, and you can <a href="https://github.com/opendocs-cc/opendocs/blob/main/SELF_HOSTING.md">host it yourself</a>.',
   },
 ];
 

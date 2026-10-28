@@ -85,9 +85,9 @@ opendocs theme set --preset boardroom --yes  # your brand on every export
 - [README to PDF](https://opendocs.cc/tools/readme-to-pdf): A repository README as a PDF
 - [ChatGPT and AI answers to PDF](https://opendocs.cc/tools/chatgpt-to-pdf): Turn an AI answer into a clean PDF
 
-## Source code and self-hosting
+## Open source and self-hosting
 
-The code is on GitHub. The web app, API, MCP server and document converter are source-available under FSL-1.1-MIT (each release becomes MIT after two years); the CLI, browser extension and agent skills are MIT. A team can host its own instance with Docker, with every feature unlocked, and use the same CLI, skill and MCP server with it.
+OpenDocs is open source under the MIT license: the web app, API, MCP server, document converter, CLI, browser extension and agent skills. A team can host its own instance with Docker, with every feature unlocked, and use the same CLI, skill and MCP server with it. The self-hosting guide is written so an agent can follow it.
 
 - [Source code](https://github.com/opendocs-cc/opendocs): The web app, API and MCP server
 - [Self-hosting guide](https://github.com/opendocs-cc/opendocs/blob/main/SELF_HOSTING.md): Run OpenDocs on your own server

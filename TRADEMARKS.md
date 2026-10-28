@@ -1,8 +1,8 @@
 # Trademarks
 
 "OpenDocs", the OpenDocs logo and the opendocs.cc domain belong to
-Contrarian Capital ehf. The code license (FSL-1.1-MIT, and MIT where noted)
-doesn't grant any rights to them.
+Contrarian Capital ehf. The code's MIT license doesn't grant any rights to
+them.
 
 **Running it for your own team is fine as it is.** A self-hosted instance
 (see [SELF_HOSTING.md](SELF_HOSTING.md)) that you run for yourself or your

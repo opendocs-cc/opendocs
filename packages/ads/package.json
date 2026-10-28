@@ -2,7 +2,7 @@
   "name": "@opendocs/ads",
   "version": "1.0.0",
   "private": true,
-  "license": "FSL-1.1-MIT",
+  "license": "MIT",
   "exports": {
     "./web": "./src/web.tsx",
     "./server": "./src/server.ts"
