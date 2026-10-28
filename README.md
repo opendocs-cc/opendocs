@@ -21,13 +21,16 @@ Compose:
 - **The same tools connect to it.** The CLI and the agent skill
   (`opendocs login --api-url https://api.example.com`), and Claude, ChatGPT
   and other AI apps through its own MCP server.
-- **What you need:** a server with 4 GB of memory, a domain and PostgreSQL
-  (Neon's free tier works). Email (Resend) and file storage (R2 or any
-  S3-compatible service) are optional but recommended.
+- **What you need:** a server with 4 GB of memory and a domain. PostgreSQL
+  can run on the same server, or use a hosted one such as Neon. Email
+  (Resend) and file storage (R2 or any S3-compatible service) are optional
+  but recommended.
 
 It takes some work: you set up those services and keep the server updated,
 and support is best-effort. **[SELF_HOSTING.md](SELF_HOSTING.md)** walks
-through it step by step.
+through it step by step, and it's written so an AI agent such as Claude Code
+or Codex can do the setup for you. It ends with every setting and its
+default.
 
 If you self-host OpenDocs and it saves you time, you can support its
 development on [Ko-fi](https://ko-fi.com/patrekurm).
