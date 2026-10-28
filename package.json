@@ -2,7 +2,7 @@
   "name": "opendocs",
   "version": "0.1.0",
   "private": true,
-  "license": "FSL-1.1-MIT",
+  "license": "MIT",
   "repository": {
     "type": "git",
     "url": "https://github.com/opendocs-cc/opendocs.git"

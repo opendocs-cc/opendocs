@@ -8,10 +8,9 @@ with Docker, and keep it updated yourself. Support is best-effort, through
 [GitHub issues](https://github.com/opendocs-cc/opendocs/issues). If you'd
 rather not, [opendocs.cc](https://opendocs.cc) runs it for you.
 
-The license (FSL-1.1-MIT) lets you run it for your own company or team. It
-doesn't let you offer it to others as a service that competes with
-opendocs.cc. See [LICENSING.md](LICENSING.md) and
-[TRADEMARKS.md](TRADEMARKS.md).
+The code is MIT-licensed, so you can run it for anything. The OpenDocs name
+and logo aren't covered by that license: if you offer your instance to people
+outside your company, see [TRADEMARKS.md](TRADEMARKS.md).
 
 ## What you get
 

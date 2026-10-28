@@ -118,7 +118,7 @@ export function LandingNavBar({
               FAQ
             </Link>
             <Link href={SELF_HOST_SECTION_PATH} className="lp-nav__link">
-              Self-host
+              Open source
             </Link>
             <a
               href="https://github.com/opendocs-cc/"
@@ -243,7 +243,7 @@ export function LandingNavBar({
             className="lp-mobile-menu__link"
             onClick={() => setMenuOpen(false)}
           >
-            Self-host
+            Open source
           </Link>
 
           {/* Integrations accordion */}

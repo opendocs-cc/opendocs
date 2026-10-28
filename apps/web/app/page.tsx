@@ -117,7 +117,7 @@ export default async function HomePage() {
             >
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src="/github.svg" alt="" width={16} height={16} className="opacity-80" />
-              The code is on GitHub. Host it yourself.
+              Open source under MIT. Host it yourself.
               <ArrowRight className="h-3.5 w-3.5 text-zinc-400" aria-hidden="true" />
             </a>
             <h1 className="text-[34px] font-semibold leading-[1.08] min-[400px]:text-[38px] tracking-[-0.035em] text-zinc-950 sm:text-[56px] lg:text-[54px] xl:text-[60px]">
@@ -421,8 +421,8 @@ export default async function HomePage() {
                 <span className="sm:block">Run it on your own server.</span>
               </h2>
               <p className="mt-4 max-w-[56ch] text-[17px] leading-relaxed text-pretty text-zinc-400">
-                The app, API, MCP server and document converter are on GitHub. Host them with
-                Docker for your team, with every feature unlocked and nothing to pay.
+                Every part of OpenDocs is open source under the MIT license. Host it with Docker
+                for your team, with every feature unlocked and nothing to pay.
               </p>
               <div className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-4">
                 <a
@@ -451,24 +451,14 @@ export default async function HomePage() {
             </div>
 
             <div className="mt-12 grid grid-cols-1 gap-10 border-t border-white/10 pt-10 md:grid-cols-2 md:gap-14">
-              <dl className="space-y-6">
-                <div>
-                  <dt className="w-fit rounded-md bg-white/10 px-2 py-0.5 font-mono text-[13px] text-white">
-                    FSL-1.1-MIT
-                  </dt>
-                  <dd className="mt-2.5 max-w-[46ch] leading-relaxed text-zinc-400">
-                    The app, API, MCP server and converter. Use, change and host them for anything
-                    except a competing service. Each release becomes MIT after two years.
-                  </dd>
-                </div>
-                <div>
-                  <dt className="w-fit rounded-md bg-white/10 px-2 py-0.5 font-mono text-[13px] text-white">
-                    MIT
-                  </dt>
-                  <dd className="mt-2.5 max-w-[46ch] leading-relaxed text-zinc-400">
-                    The CLI, the browser extension and the agent skills.
-                  </dd>
-                </div>
+              <dl>
+                <dt className="w-fit rounded-md bg-white/10 px-2 py-0.5 font-mono text-[13px] text-white">
+                  MIT
+                </dt>
+                <dd className="mt-2.5 max-w-[46ch] leading-relaxed text-zinc-400">
+                  The web app, API, MCP server, document converter, CLI, browser extension and
+                  agent skills. Use it, change it, host it and build on it.
+                </dd>
               </dl>
               <ul className="grid grid-cols-1 gap-x-8 gap-y-5 sm:grid-cols-2 sm:gap-y-6 md:grid-cols-1 md:gap-y-5 xl:grid-cols-2 xl:gap-y-6">
                 {SELF_HOST_POINTS.map(({ icon: Icon, text }) => (
