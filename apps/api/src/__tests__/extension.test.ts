@@ -96,16 +96,15 @@ describe("browser extension", () => {
   describe("which extension IDs are trusted", () => {
     const DEV_ID = "pmpocloilkjljlpelbkngppeaagmaccc";
     const STORE_ID = "lhknacncecjennlcpdbfebdgnbdifbnc";
-    const originalNodeEnv = process.env.NODE_ENV;
 
     async function withEnv<T>(env: { NODE_ENV: string; EXTENSION_IDS?: string }, run: () => Promise<T>): Promise<T> {
-      process.env.NODE_ENV = env.NODE_ENV;
+      vi.stubEnv("NODE_ENV", env.NODE_ENV);
       if (env.EXTENSION_IDS === undefined) delete process.env.EXTENSION_IDS;
       else process.env.EXTENSION_IDS = env.EXTENSION_IDS;
       try {
         return await run();
       } finally {
-        process.env.NODE_ENV = originalNodeEnv;
+        vi.unstubAllEnvs();
         delete process.env.EXTENSION_IDS;
       }
     }
