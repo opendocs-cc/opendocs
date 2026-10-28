@@ -1,0 +1,65 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Supersede older runs on a pull request, but let every commit on main finish.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - id: install
+        run: npm ci --no-audit --no-fund
+      # Each project is checked even if an earlier one fails, so a pull request
+      # shows every type error at once.
+      - name: Web
+        run: npx tsc --noEmit -p apps/web/tsconfig.typecheck.json
+      - name: API
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npx tsc --noEmit -p apps/api
+      - name: MCP
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npx tsc --noEmit -p apps/mcp
+      - name: Shared
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npx tsc --noEmit -p packages/shared
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - id: install
+        run: npm ci --no-audit --no-fund
+      - name: MCP tests
+        run: npm test --workspace=@opendocs/mcp
+      # The API suite starts a throwaway PostgreSQL with testcontainers, using
+      # the runner's Docker.
+      - name: API tests
+        if: ${{ !cancelled() && steps.install.outcome == 'success' }}
+        run: npm test

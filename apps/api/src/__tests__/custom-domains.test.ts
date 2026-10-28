@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import request from "supertest";
 import { and, desc, eq } from "drizzle-orm";
 
@@ -257,12 +257,11 @@ describe("custom domain hostnames", () => {
       hostname: "notes.localhost",
       kind: "subdomain",
     });
-    const previous = process.env.NODE_ENV;
-    process.env.NODE_ENV = "production";
+    vi.stubEnv("NODE_ENV", "production");
     try {
       expect(validateCustomHostname("notes.localhost")).toMatchObject({ ok: false, reason: "reserved" });
     } finally {
-      process.env.NODE_ENV = previous;
+      vi.unstubAllEnvs();
     }
   });
 
